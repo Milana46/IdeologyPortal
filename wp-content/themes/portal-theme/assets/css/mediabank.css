@@ -27,11 +27,11 @@
 
 .mediabank-hero {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) auto minmax(200px, 340px);
-    gap: 20px;
+    grid-template-columns: minmax(0, 1fr) minmax(220px, 320px);
+    gap: 16px;
     align-items: center;
     margin-bottom: 20px;
-    padding: 20px 22px;
+    padding: 14px 18px;
     border-radius: 16px;
     background: #ffffff;
     border: 1px solid #e8edf5;
@@ -41,7 +41,7 @@
 .mediabank-hero__left {
     display: flex;
     align-items: center;
-    gap: 18px;
+    gap: 14px;
     min-width: 0;
 }
 
@@ -87,7 +87,7 @@
     overflow: hidden;
     background: #eef5ff;
     border: 1px solid #e2eaf5;
-    min-height: 160px;
+    min-height: 120px;
 }
 
 .mediabank-hero__illustration img {

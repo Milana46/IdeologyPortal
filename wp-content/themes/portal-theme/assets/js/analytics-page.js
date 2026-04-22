@@ -57,4 +57,19 @@
 			closeModal();
 		}
 	});
+
+	(function openTaskFromUrl() {
+		try {
+			var params = new URLSearchParams(window.location.search);
+			var taskId = params.get('open_task');
+			if (!taskId) {
+				return;
+			}
+			var taskCard = document.getElementById('analytics-task-' + taskId);
+			if (taskCard && typeof taskCard.scrollIntoView === 'function') {
+				taskCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+			}
+			openModal(taskId);
+		} catch (e) {}
+	})();
 })();

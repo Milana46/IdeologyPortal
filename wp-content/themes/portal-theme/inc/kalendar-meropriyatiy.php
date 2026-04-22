@@ -1,14 +1,9 @@
 <?php
-/**
- * Календарь мероприятий: записи только из wp-admin.
- */
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-/**
- * Регистрация типа записей.
- */
 function portal_theme_cal_merop_register_post_type() {
 	register_post_type(
 		'portal_cal_merop',
@@ -45,11 +40,6 @@ function portal_theme_cal_merop_register_post_type() {
 }
 add_action( 'init', 'portal_theme_cal_merop_register_post_type' );
 
-/**
- * Данные для фронтенда.
- *
- * @return array<int,array<string,mixed>>
- */
 function portal_theme_cal_merop_collect_for_js() {
 	$q = new WP_Query(
 		array(
@@ -86,9 +76,6 @@ function portal_theme_cal_merop_collect_for_js() {
 	return $out;
 }
 
-/**
- * Метабокс даты.
- */
 function portal_theme_cal_merop_add_meta_box() {
 	add_meta_box(
 		'portal_cal_merop_date',
@@ -101,9 +88,6 @@ function portal_theme_cal_merop_add_meta_box() {
 }
 add_action( 'add_meta_boxes', 'portal_theme_cal_merop_add_meta_box' );
 
-/**
- * @param WP_Post $post Post.
- */
 function portal_theme_cal_merop_meta_box_render( $post ) {
 	wp_nonce_field( 'portal_cal_merop_save_meta', 'portal_cal_merop_meta_nonce' );
 	$date = get_post_meta( $post->ID, '_portal_cal_merop_date', true );
@@ -117,9 +101,6 @@ function portal_theme_cal_merop_meta_box_render( $post ) {
 	<?php
 }
 
-/**
- * @param int $post_id ID.
- */
 function portal_theme_cal_merop_save_meta( $post_id ) {
 	if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
 		return;
@@ -143,10 +124,6 @@ function portal_theme_cal_merop_save_meta( $post_id ) {
 }
 add_action( 'save_post_portal_cal_merop', 'portal_theme_cal_merop_save_meta' );
 
-/**
- * @param string[] $columns Колонки.
- * @return string[]
- */
 function portal_theme_cal_merop_posts_columns( $columns ) {
 	$new = array();
 	foreach ( $columns as $key => $label ) {
@@ -159,10 +136,6 @@ function portal_theme_cal_merop_posts_columns( $columns ) {
 }
 add_filter( 'manage_portal_cal_merop_posts_columns', 'portal_theme_cal_merop_posts_columns' );
 
-/**
- * @param string $column Колонка.
- * @param int    $post_id ID.
- */
 function portal_theme_cal_merop_posts_custom_column( $column, $post_id ) {
 	if ( 'portal_cal_merop_date' !== $column ) {
 		return;

@@ -185,7 +185,7 @@
 		});
 	}
 
-	/* Фильтр «Тип материала»: data-bp-category = social | smi | events | templates (цветной кружок на карточке). Вкладка «Все» — без фильтра по типу. */
+	
 	var categoryTabsRoot = document.getElementById('bp-category-tabs');
 	var searchInput = document.getElementById('bp-search');
 	var sortSelect = document.getElementById('bp-sort');

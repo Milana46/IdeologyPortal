@@ -70,7 +70,7 @@
     function refresh() {
         sortCards();
         applyFilter();
-        /* Карусели пересчитывают ширину после смены фильтра (раньше блок мог быть скрыт). */
+        
         setTimeout(function () {
             try {
                 window.dispatchEvent(new Event('resize'));
@@ -163,7 +163,7 @@
                 }
                 track.style.transform = 'translateX(-' + idx * w + 'px)';
                 if (animate === false) {
-                    /* force reflow */
+                    
                     track.offsetHeight;
                     track.style.transition = '';
                 }

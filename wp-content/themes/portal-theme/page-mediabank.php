@@ -15,7 +15,6 @@ $theme_img = get_template_directory_uri() . '/assets/img';
 $mediabank_q = new WP_Query(
 	array(
 		'post_type'      => 'portal_mediabank',
-		// publish — опубликовано; future — запланировано (иначе до даты публикации материал не попадёт в выборку).
 		'post_status'    => array( 'publish', 'future' ),
 		'posts_per_page' => -1,
 		'orderby'        => 'date',
@@ -57,17 +56,6 @@ $mb_types = function_exists( 'portal_theme_mediabank_type_slugs' )
 							<?php esc_html_e( 'Единое хранилище фото, видео и графических материалов', 'portal-theme' ); ?>
 						</p>
 					</div>
-				</div>
-				<div class="mediabank-hero__actions">
-					<?php if ( current_user_can( 'edit_posts' ) ) : ?>
-						<a href="<?php echo esc_url( admin_url( 'post-new.php?post_type=portal_mediabank' ) ); ?>" class="portal-btn portal-btn--green">
-							<?php esc_html_e( 'Добавить материалы', 'portal-theme' ); ?>
-						</a>
-					<?php else : ?>
-						<a href="<?php echo esc_url( wp_login_url( get_permalink() ) ); ?>" class="portal-btn portal-btn--green">
-							<?php esc_html_e( 'Войти, чтобы добавить материалы', 'portal-theme' ); ?>
-						</a>
-					<?php endif; ?>
 				</div>
 				<div class="mediabank-hero__illustration">
 					<img
@@ -145,19 +133,26 @@ $mb_types = function_exists( 'portal_theme_mediabank_type_slugs' )
 										$img_url = $one['src'];
 									}
 								} else {
-									if ( ! $thumb_id ) {
+									$link_url = function_exists( 'portal_theme_mediabank_card_link_url' )
+										? portal_theme_mediabank_card_link_url( $pid )
+										: '';
+									if ( $link_url === '' ) {
 										$skip_card = true;
-									} else {
+									} elseif ( $thumb_id ) {
 										$img_url = wp_get_attachment_image_url( $thumb_id, 'large' );
 										if ( ! $img_url ) {
 											$skip_card = true;
+										}
+									} else {
+										$file_id   = (int) get_post_meta( $pid, '_portal_mb_file', true );
+										$file_mime = $file_id > 0 ? get_post_mime_type( $file_id ) : '';
+										$file_mime = is_string( $file_mime ) ? $file_mime : '';
+										$is_video_file = ( strpos( $file_mime, 'video/' ) === 0 );
+										if ( $is_video_file || 'video' === $type ) {
+											$img_url   = '';
+											$show_play = true;
 										} else {
-											$link_url = function_exists( 'portal_theme_mediabank_card_link_url' )
-												? portal_theme_mediabank_card_link_url( $pid )
-												: '';
-											if ( $link_url === '' ) {
-												$skip_card = true;
-											}
+											$skip_card = true;
 										}
 									}
 								}
@@ -172,6 +167,7 @@ $mb_types = function_exists( 'portal_theme_mediabank_type_slugs' )
 								$raw_title = wp_strip_all_tags( $title );
 								?>
 							<article
+								id="<?php echo esc_attr( 'mediabank-item-' . (string) $pid ); ?>"
 								class="mediabank-card"
 								data-type="<?php echo esc_attr( $type ); ?>"
 								data-title="<?php echo esc_attr( $raw_title ); ?>"
@@ -210,7 +206,7 @@ $mb_types = function_exists( 'portal_theme_mediabank_type_slugs' )
 												<?php
 												for ( $di = 0; $di < $slide_count; $di++ ) :
 													?>
-													<button type="button" class="mediabank-carousel__dot<?php echo 0 === $di ? ' is-active' : ''; ?>" role="tab" aria-selected="<?php echo 0 === $di ? 'true' : 'false'; ?>" aria-label="<?php echo esc_attr( sprintf( /* translators: %d: slide number */ __( 'Слайд %d', 'portal-theme' ), $di + 1 ) ); ?>" data-slide-to="<?php echo esc_attr( (string) $di ); ?>"></button>
+													<button type="button" class="mediabank-carousel__dot<?php echo 0 === $di ? ' is-active' : ''; ?>" role="tab" aria-selected="<?php echo 0 === $di ? 'true' : 'false'; ?>" aria-label="<?php echo esc_attr( sprintf(  __( 'Слайд %d', 'portal-theme' ), $di + 1 ) ); ?>" data-slide-to="<?php echo esc_attr( (string) $di ); ?>"></button>
 													<?php
 												endfor;
 												?>

@@ -1,0 +1,7 @@
+{
+  "intelephense.environment.includePaths": [
+    "C:/Users/Mila/.wp-env/73eed8308c3abb394ad0d8373566d691/WordPress",
+    "C:/Users/Mila/.wp-env/73eed8308c3abb394ad0d8373566d691/WordPress/wp-includes",
+    "C:/Users/Mila/.wp-env/73eed8308c3abb394ad0d8373566d691/WordPress/wp-admin"
+  ]
+}

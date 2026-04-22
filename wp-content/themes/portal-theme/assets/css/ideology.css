@@ -148,6 +148,9 @@
     overflow: hidden;
     background: #f3f6fb;
     flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .ideology-card__image img {
@@ -156,6 +159,31 @@
     object-fit: cover;
 }
 
+.ideology-card__image-label {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px;
+    font-size: 10px;
+    line-height: 1.15;
+    font-weight: 700;
+    text-align: center;
+    color: #ffffff;
+}
+
+.ideology-card__image-label--symbolika {
+    background: #e53935;
+}
+
+.ideology-card__image-label--akty {
+    background: #43a047;
+}
+
+.ideology-card__image-label--pasport {
+    background: #1e88e5;
+}
 
 .ideology-card__main {
     min-width: 0;
@@ -212,6 +240,7 @@
     min-width: 74px;
     height: 30px;
     padding: 0 12px;
+    border: none;
     border-radius: 6px;
     font-size: 11px;
 }
@@ -299,7 +328,6 @@
     object-fit: contain;
     display: block;
 }
-
 
 .ideology-pagination {
     display: flex;
@@ -396,7 +424,6 @@ button.ideology-tabs__item {
     border: 0;
 }
 
-/* Модальное окно «Добавить материал» */
 .ideology-modal {
     max-width: min(96vw, 440px);
     width: 100%;
@@ -549,7 +576,6 @@ button.ideology-tabs__item {
     color: #8a99b8;
 }
 
-/* Модальное окно «Просмотр материала» */
 .ideology-view-modal {
     max-width: min(96vw, 720px);
     width: 100%;

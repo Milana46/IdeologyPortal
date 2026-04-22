@@ -1,25 +1,13 @@
 <?php
-/**
- * «Основы идеолога»: тип записей и метаполя (wp-admin).
- */
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-/**
- * Категории материала (вкладки на сайте).
- *
- * @return string[]
- */
 function portal_theme_ideology_category_slugs() {
 	return array( 'symbolika', 'akty', 'pasport' );
 }
 
-/**
- * Подписи категорий.
- *
- * @return array<string,string>
- */
 function portal_theme_ideology_category_labels() {
 	return array(
 		'symbolika' => __( 'Государственная символика', 'portal-theme' ),
@@ -28,9 +16,6 @@ function portal_theme_ideology_category_labels() {
 	);
 }
 
-/**
- * Регистрация типа записей.
- */
 function portal_theme_ideology_register_post_type() {
 	register_post_type(
 		'portal_ideology',
@@ -67,12 +52,6 @@ function portal_theme_ideology_register_post_type() {
 }
 add_action( 'init', 'portal_theme_ideology_register_post_type' );
 
-/**
- * Массив полей для карточки и модального окна из записи WP.
- *
- * @param int|WP_Post $post ID или объект записи.
- * @return array<string,mixed>|null
- */
 function portal_theme_ideology_post_to_item_array( $post ) {
 	$post = get_post( $post );
 	if ( ! $post || 'portal_ideology' !== $post->post_type ) {
@@ -102,9 +81,6 @@ function portal_theme_ideology_post_to_item_array( $post ) {
 	);
 }
 
-/**
- * Метабокс: категория и файл.
- */
 function portal_theme_ideology_add_meta_box() {
 	add_meta_box(
 		'portal_idl_details',
@@ -117,9 +93,6 @@ function portal_theme_ideology_add_meta_box() {
 }
 add_action( 'add_meta_boxes', 'portal_theme_ideology_add_meta_box' );
 
-/**
- * @param WP_Post $post Post.
- */
 function portal_theme_ideology_meta_box_render( $post ) {
 	wp_nonce_field( 'portal_idl_save_meta', 'portal_idl_meta_nonce' );
 	$type     = get_post_meta( $post->ID, '_portal_ideology_category', true );
@@ -162,11 +135,6 @@ function portal_theme_ideology_meta_box_render( $post ) {
 	<?php
 }
 
-/**
- * Сохранение метаполей.
- *
- * @param int $post_id ID записи.
- */
 function portal_theme_ideology_save_meta( $post_id ) {
 	if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
 		return;
@@ -202,11 +170,6 @@ function portal_theme_ideology_save_meta( $post_id ) {
 }
 add_action( 'save_post_portal_ideology', 'portal_theme_ideology_save_meta' );
 
-/**
- * Админские скрипты выбора файла.
- *
- * @param string $hook_suffix Hook.
- */
 function portal_theme_ideology_admin_assets( $hook_suffix ) {
 	$screen = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
 	if ( ! $screen || $screen->post_type !== 'portal_ideology' ) {
@@ -235,12 +198,6 @@ function portal_theme_ideology_admin_assets( $hook_suffix ) {
 }
 add_action( 'admin_enqueue_scripts', 'portal_theme_ideology_admin_assets' );
 
-/**
- * Колонки в списке материалов.
- *
- * @param string[] $columns Колонки.
- * @return string[]
- */
 function portal_theme_ideology_posts_columns( $columns ) {
 	$new = array();
 	foreach ( $columns as $key => $label ) {
@@ -254,12 +211,6 @@ function portal_theme_ideology_posts_columns( $columns ) {
 }
 add_filter( 'manage_portal_ideology_posts_columns', 'portal_theme_ideology_posts_columns' );
 
-/**
- * Вывод доп. колонок.
- *
- * @param string $column Имя колонки.
- * @param int    $post_id ID записи.
- */
 function portal_theme_ideology_posts_custom_column( $column, $post_id ) {
 	$post_id = (int) $post_id;
 	if ( 'portal_idl_thumb' === $column ) {
@@ -281,9 +232,6 @@ function portal_theme_ideology_posts_custom_column( $column, $post_id ) {
 }
 add_action( 'manage_portal_ideology_posts_custom_column', 'portal_theme_ideology_posts_custom_column', 10, 2 );
 
-/**
- * Однократный импорт из старой опции portal_theme_ideology_materials.
- */
 function portal_theme_ideology_migrate_legacy_option() {
 	if ( get_option( 'portal_theme_ideology_legacy_migrated', '' ) === 'yes' ) {
 		return;
@@ -297,7 +245,6 @@ function portal_theme_ideology_migrate_legacy_option() {
 		)
 	);
 	if ( ! empty( $existing ) ) {
-		// Уже есть материалы в новом формате — не импортируем старую опцию повторно.
 		update_option( 'portal_theme_ideology_legacy_migrated', 'yes', false );
 		return;
 	}

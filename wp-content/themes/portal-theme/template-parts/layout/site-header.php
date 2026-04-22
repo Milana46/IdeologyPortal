@@ -27,7 +27,10 @@ if ( ! defined( 'ABSPATH' ) ) {
             <input
                 type="search"
                 name="s"
+                value="<?php echo esc_attr( get_search_query() ); ?>"
                 placeholder="Поиск по сайту..."
+                aria-label="<?php esc_attr_e( 'Поиск по сайту', 'portal-theme' ); ?>"
+                autocomplete="off"
             >
 
             <button type="submit">

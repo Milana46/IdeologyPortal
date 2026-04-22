@@ -1,14 +1,8 @@
 <?php
-/**
- * Template Name: Аналитика и эффективность
- */
+/* Template Name: Аналитика и эффективность */
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
-
-/*
- * Подключение CSS/JS здесь гарантирует загрузку: не зависит от is_page_template в момент глобального enqueue.
- */
 if ( function_exists( 'portal_theme_enqueue_analytics_page_assets' ) && ! has_action( 'wp_enqueue_scripts', 'portal_theme_enqueue_analytics_page_assets' ) ) {
 	add_action( 'wp_enqueue_scripts', 'portal_theme_enqueue_analytics_page_assets', 20 );
 }
@@ -105,7 +99,7 @@ $popular_sub_fallback = __( 'Краткая информация', 'portal-theme
 									$tasks_q->the_post();
 									$analytics_task_ids[] = get_the_ID();
 									echo function_exists( 'portal_theme_analytics_task_card_html' )
-										? portal_theme_analytics_task_card_html( get_the_ID() ) // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+										? portal_theme_analytics_task_card_html( get_the_ID() )
 										: '';
 								endwhile;
 								wp_reset_postdata();
@@ -158,7 +152,7 @@ $popular_sub_fallback = __( 'Краткая информация', 'portal-theme
 					<section class="analytics-widget analytics-widget--ask">
 						<h3 class="analytics-widget__title"><?php esc_html_e( 'Задайте дополнительные вопросы', 'portal-theme' ); ?></h3>
 						<?php
-						$analytics_ask_flag = isset( $_GET['analytics_ask'] ) ? sanitize_key( wp_unslash( $_GET['analytics_ask'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+						$analytics_ask_flag = isset( $_GET['analytics_ask'] ) ? sanitize_key( wp_unslash( $_GET['analytics_ask'] ) ) : '';
 						if ( '1' === $analytics_ask_flag ) :
 							?>
 							<p class="analytics-ask-notice analytics-ask-notice--success" role="status"><?php esc_html_e( 'Сообщение отправлено. Спасибо!', 'portal-theme' ); ?></p>
@@ -184,7 +178,7 @@ $popular_sub_fallback = __( 'Краткая информация', 'portal-theme
 <?php
 foreach ( $analytics_task_ids as $analytics_tid ) {
 	echo function_exists( 'portal_theme_analytics_task_modal_template_html' )
-		? portal_theme_analytics_task_modal_template_html( $analytics_tid ) // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		? portal_theme_analytics_task_modal_template_html( $analytics_tid )
 		: '';
 }
 ?>

@@ -1,23 +1,13 @@
 <?php
-/**
- * Календарь ключевых событий: тип записей (только wp-admin).
- */
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-/**
- * Типы события (цвет на календаре).
- *
- * @return string[]
- */
 function portal_theme_kse_type_slugs() {
 	return array( 'video', 'docs' );
 }
 
-/**
- * @return array<string,string>
- */
 function portal_theme_kse_type_labels() {
 	return array(
 		'video' => __( 'Видеоконференция', 'portal-theme' ),
@@ -25,9 +15,6 @@ function portal_theme_kse_type_labels() {
 	);
 }
 
-/**
- * Регистрация типа записей.
- */
 function portal_theme_kse_register_post_type() {
 	register_post_type(
 		'portal_kse_event',
@@ -64,11 +51,6 @@ function portal_theme_kse_register_post_type() {
 }
 add_action( 'init', 'portal_theme_kse_register_post_type' );
 
-/**
- * Данные для JS (массив событий).
- *
- * @return array<int,array<string,mixed>>
- */
 function portal_theme_kse_collect_events_for_js() {
 	$q = new WP_Query(
 		array(
@@ -106,15 +88,13 @@ function portal_theme_kse_collect_events_for_js() {
 			'title'       => get_the_title(),
 			'description' => (string) get_post_field( 'post_excerpt', $pid ),
 			'color'       => $color,
+			'conferenceUrl' => (string) get_post_meta( $pid, '_portal_kse_conference_url', true ),
 		);
 	}
 	wp_reset_postdata();
 	return $out;
 }
 
-/**
- * Метабокс: дата и тип.
- */
 function portal_theme_kse_add_meta_box() {
 	add_meta_box(
 		'portal_kse_details',
@@ -127,9 +107,6 @@ function portal_theme_kse_add_meta_box() {
 }
 add_action( 'add_meta_boxes', 'portal_theme_kse_add_meta_box' );
 
-/**
- * @param WP_Post $post Post.
- */
 function portal_theme_kse_meta_box_render( $post ) {
 	wp_nonce_field( 'portal_kse_save_meta', 'portal_kse_meta_nonce' );
 	$date = get_post_meta( $post->ID, '_portal_kse_date', true );
@@ -140,6 +117,8 @@ function portal_theme_kse_meta_box_render( $post ) {
 	if ( ! in_array( $type, portal_theme_kse_type_slugs(), true ) ) {
 		$type = 'video';
 	}
+	$conference_url = get_post_meta( $post->ID, '_portal_kse_conference_url', true );
+	$conference_url = is_string( $conference_url ) ? $conference_url : '';
 	$labels = portal_theme_kse_type_labels();
 	?>
 	<p>
@@ -160,14 +139,14 @@ function portal_theme_kse_meta_box_render( $post ) {
 	<p class="description">
 		<?php esc_html_e( 'Краткое описание в календаре — поле «Отрывок» справа. Заголовок — название события.', 'portal-theme' ); ?>
 	</p>
+	<p style="margin-top:16px;">
+		<label for="portal-kse-conference-url"><strong><?php esc_html_e( 'Ссылка на видеоконференцию', 'portal-theme' ); ?></strong></label><br>
+		<input type="url" name="portal_kse_conference_url" id="portal-kse-conference-url" value="<?php echo esc_attr( $conference_url ); ?>" placeholder="https://" style="max-width:100%;">
+	</p>
+	<p class="description"><?php esc_html_e( 'Необязательно. Если ссылка заполнена, на сайте появится кнопка перехода к видеоконференции.', 'portal-theme' ); ?></p>
 	<?php
 }
 
-/**
- * Сохранение метаполей.
- *
- * @param int $post_id ID записи.
- */
 function portal_theme_kse_save_meta( $post_id ) {
 	if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
 		return;
@@ -194,15 +173,16 @@ function portal_theme_kse_save_meta( $post_id ) {
 		$type = 'video';
 	}
 	update_post_meta( $post_id, '_portal_kse_type', $type );
+
+	$conference_url = isset( $_POST['portal_kse_conference_url'] ) ? esc_url_raw( wp_unslash( $_POST['portal_kse_conference_url'] ) ) : '';
+	if ( is_string( $conference_url ) && $conference_url !== '' ) {
+		update_post_meta( $post_id, '_portal_kse_conference_url', $conference_url );
+	} else {
+		delete_post_meta( $post_id, '_portal_kse_conference_url' );
+	}
 }
 add_action( 'save_post_portal_kse_event', 'portal_theme_kse_save_meta' );
 
-/**
- * Колонки в списке.
- *
- * @param string[] $columns Колонки.
- * @return string[]
- */
 function portal_theme_kse_posts_columns( $columns ) {
 	$new = array();
 	foreach ( $columns as $key => $label ) {
@@ -216,10 +196,6 @@ function portal_theme_kse_posts_columns( $columns ) {
 }
 add_filter( 'manage_portal_kse_event_posts_columns', 'portal_theme_kse_posts_columns' );
 
-/**
- * @param string $column Колонка.
- * @param int    $post_id ID.
- */
 function portal_theme_kse_posts_custom_column( $column, $post_id ) {
 	$post_id = (int) $post_id;
 	if ( 'portal_kse_date' === $column ) {

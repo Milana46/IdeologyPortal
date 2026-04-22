@@ -30,8 +30,12 @@
 	var viewYear;
 	var viewMonth;
 	var selectedISODate = null;
+	var initialParams = null;
+	try {
+		initialParams = new URLSearchParams(window.location.search);
+	} catch (e) {}
 
-	/** 'all' | 'green' | 'blue' */
+	
 	var displayTypeFilter = 'all';
 
 	if (elUpcomingEmpty && strings.upcomingEmpty) {
@@ -94,7 +98,7 @@
 		return out;
 	}
 
-	/** События дня для модалки: тип + поиск */
+	
 	function eventsForModal(iso) {
 		var q = searchQuery();
 		return eventsForDate(iso).filter(function (ev) {
@@ -162,6 +166,17 @@
 
 	function typeLabel(ev) {
 		return eventColor(ev) === 'blue' ? (strings.typeDocs || 'Подача документов') : (strings.typeVideo || 'Видеоконференция');
+	}
+
+	function conferenceUrl(ev) {
+		if (!ev || !ev.conferenceUrl) {
+			return '';
+		}
+		var url = String(ev.conferenceUrl).trim();
+		if (!url) {
+			return '';
+		}
+		return url;
 	}
 
 	function setView(y, m) {
@@ -428,6 +443,16 @@
 				info.textContent = ev.description;
 				body.appendChild(info);
 			}
+			var confUrlUpcoming = conferenceUrl(ev);
+			if (confUrlUpcoming) {
+				var confLink = document.createElement('a');
+				confLink.className = 'kse-upcoming-item__link';
+				confLink.href = confUrlUpcoming;
+				confLink.target = '_blank';
+				confLink.rel = 'noopener noreferrer';
+				confLink.textContent = strings.conferenceLink || 'Перейти к видеоконференции';
+				body.appendChild(confLink);
+			}
 			body.appendChild(dateEl);
 
 			li.appendChild(dot);
@@ -476,6 +501,16 @@
 				desc.textContent = ev.description;
 				card.appendChild(desc);
 			}
+			var confUrl = conferenceUrl(ev);
+			if (confUrl) {
+				var actionLink = document.createElement('a');
+				actionLink.className = 'kse-modal__view-item-link';
+				actionLink.href = confUrl;
+				actionLink.target = '_blank';
+				actionLink.rel = 'noopener noreferrer';
+				actionLink.textContent = strings.conferenceLink || 'Перейти к видеоконференции';
+				card.appendChild(actionLink);
+			}
 
 			elModalBody.appendChild(card);
 		});
@@ -509,6 +544,22 @@
 
 		var now = new Date();
 		setView(now.getFullYear(), now.getMonth() + 1);
+
+		if (initialParams) {
+			var initialSearch = initialParams.get('portal_find');
+			if (initialSearch && elSearch) {
+				elSearch.value = initialSearch;
+			}
+			var initialDate = initialParams.get('portal_date');
+			if (initialDate && /^\d{4}-\d{2}-\d{2}$/.test(initialDate)) {
+				var parts = initialDate.split('-');
+				var y = parseInt(parts[0], 10);
+				var m = parseInt(parts[1], 10);
+				if (!isNaN(y) && !isNaN(m) && m >= 1 && m <= 12) {
+					setView(y, m);
+				}
+			}
+		}
 
 		var activeTabBtn = document.querySelector('.kse-tabs__btn.is-active');
 		if (activeTabBtn) {

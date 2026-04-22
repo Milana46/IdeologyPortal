@@ -1,0 +1,10 @@
+{
+    "$schema": "https://schemas.wp.org/trunk/wp-env.json",
+    "core": "WordPress/WordPress#6.7.1",
+    "plugins": [
+        "./wp-content/plugins/portal-core"
+    ],
+    "mappings": {
+        "wp-content/themes/portal-theme": "./wp-content/themes/portal-theme"
+    }
+}

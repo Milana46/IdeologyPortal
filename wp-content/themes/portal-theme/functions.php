@@ -296,6 +296,7 @@ add_action(
                             'upcomingEmpty' => __( 'На текущей неделе нет событий. Измените поиск или фильтр.', 'portal-theme' ),
                             'typeVideo'     => __( 'Видеоконференция', 'portal-theme' ),
                             'typeDocs'      => __( 'Подача документов', 'portal-theme' ),
+                            'conferenceLink' => __( 'Перейти к видеоконференции', 'portal-theme' ),
                         ),
                     )
                 );
@@ -305,12 +306,6 @@ add_action(
     }
 );
 
-/**
- * Группа формата для фильтра: document | presentation | video | image.
- *
- * @param string      $mime MIME-тип.
- * @param string|null $path Путь к файлу (для расширения).
- */
 function portal_theme_bp_format_group_from_mime( $mime, $path = null ) {
 	$mime = is_string( $mime ) ? $mime : '';
 	$ext  = is_string( $path ) && $path !== '' ? strtolower( pathinfo( $path, PATHINFO_EXTENSION ) ) : '';
@@ -327,11 +322,6 @@ function portal_theme_bp_format_group_from_mime( $mime, $path = null ) {
 	return 'document';
 }
 
-/**
- * Группа формата по имени файла (материалы из папки темы).
- *
- * @param string $filename Имя файла.
- */
 function portal_theme_bp_format_group_from_filename( $filename ) {
 	if ( ! is_string( $filename ) || $filename === '' ) {
 		return 'document';
@@ -339,15 +329,6 @@ function portal_theme_bp_format_group_from_filename( $filename ) {
 	return portal_theme_bp_format_group_from_mime( '', $filename );
 }
 
-/**
- * Режим просмотра в модальном окне.
- *
- * @param string $format_group document|presentation|video|image.
- * @param string $mime         MIME.
- * @param bool   $is_local     Локальный хост.
- * @param string $pdf_url      URL PDF (если есть).
- * @param string $doc_url      URL основного файла.
- */
 function portal_theme_bp_media_viewer_mode( $format_group, $mime, $is_local, $pdf_url, $doc_url ) {
 	if ( 'image' === $format_group ) {
 		return 'image';
@@ -367,9 +348,6 @@ function portal_theme_bp_media_viewer_mode( $format_group, $mime, $is_local, $pd
 	return 'fallback';
 }
 
-/**
- * Локальный хост (Office Online недоступен).
- */
 function portal_theme_ideology_is_local() {
 	static $cached = null;
 	if ( null !== $cached ) {
@@ -390,12 +368,6 @@ function portal_theme_ideology_is_local() {
 	return $cached;
 }
 
-/**
- * Данные для модального просмотра материала «Основы идеолога».
- *
- * @param array<string,mixed> $item Строка материала.
- * @return array<string,mixed>
- */
 function portal_theme_ideology_build_open_data( array $item ) {
 	$title   = isset( $item['title'] ) ? (string) $item['title'] : '';
 	$excerpt = isset( $item['excerpt'] ) ? (string) $item['excerpt'] : '';
@@ -438,12 +410,6 @@ function portal_theme_ideology_build_open_data( array $item ) {
 	);
 }
 
-/**
- * Разметка карточки материала (статический файл темы или вложение).
- *
- * @param array<string,mixed> $args Аргументы.
- * @return string
- */
 function portal_theme_bp_render_material_card( array $args ) {
 	$defaults = array(
 		'title'          => '',
@@ -454,6 +420,7 @@ function portal_theme_bp_render_material_card( array $args ) {
 		'theme_img_base' => '',
 		'filename'       => '',
 		'attachment_id'  => 0,
+		'post_id'        => 0,
 		'order'          => 1,
 		'is_local'       => null,
 		'thumb_override' => '',
@@ -540,10 +507,11 @@ function portal_theme_bp_render_material_card( array $args ) {
 			esc_attr( $viewer )
 		);
 	}
+	$card_id = (int) $a['post_id'];
 
 	ob_start();
 	?>
-	<article class="bp-card" data-bp-category="<?php echo esc_attr( $cat ); ?>" data-bp-search="<?php echo esc_attr( $search_idx ); ?>" data-bp-order="<?php echo esc_attr( (string) (int) $a['order'] ); ?>">
+	<article<?php echo $card_id > 0 ? ' id="' . esc_attr( 'bp-material-' . (string) $card_id ) . '"' : ''; ?> class="bp-card" data-bp-category="<?php echo esc_attr( $cat ); ?>" data-bp-search="<?php echo esc_attr( $search_idx ); ?>" data-bp-order="<?php echo esc_attr( (string) (int) $a['order'] ); ?>">
 		<div class="bp-card__thumb bp-card__thumb--img" aria-hidden="true">
 			<?php if ( $thumb_img_url ) : ?>
 				<img src="<?php echo esc_url( $thumb_img_url ); ?>" alt="">
@@ -573,14 +541,6 @@ function portal_theme_bp_render_material_card( array $args ) {
 	return (string) ob_get_clean();
 }
 
-/**
- * Карточка из записи portal_bp_material.
- *
- * @param WP_Post $post      Запись.
- * @param string  $theme_img URI каталога assets/img темы.
- * @param bool    $is_local  Локальный хост.
- * @return string
- */
 function portal_theme_bp_render_material_card_from_post( $post, $theme_img, $is_local ) {
 	if ( ! $post instanceof WP_Post || 'portal_bp_material' !== $post->post_type ) {
 		return '';
@@ -626,6 +586,7 @@ function portal_theme_bp_render_material_card_from_post( $post, $theme_img, $is_
 			'img_card'       => 'icon_book.png',
 			'theme_img_base' => $theme_img,
 			'attachment_id'  => $fid,
+			'post_id'        => $pid,
 			'order'          => $order,
 			'is_local'       => $is_local,
 			'thumb_override' => $thumb_override,
@@ -633,11 +594,6 @@ function portal_theme_bp_render_material_card_from_post( $post, $theme_img, $is_
 	);
 }
 
-/**
- * HTML карточки материала «Основы идеолога».
- *
- * @param array<string,mixed> $item Поля из portal_theme_ideology_post_to_item_array(): title, excerpt, category, attachment_id, thumb_url, id.
- */
 function portal_theme_ideology_render_card( array $item ) {
 	$allowed = array( 'symbolika', 'akty', 'pasport' );
 	$cat     = isset( $item['category'] ) ? sanitize_key( $item['category'] ) : 'akty';
@@ -652,7 +608,8 @@ function portal_theme_ideology_render_card( array $item ) {
 		'akty'      => __( 'Акты', 'portal-theme' ),
 		'pasport'   => __( 'Социальный паспорт предприятия', 'portal-theme' ),
 	);
-	$img_alt = isset( $labels[ $cat ] ) ? $labels[ $cat ] : __( 'Материал', 'portal-theme' );
+	$cat_label = isset( $labels[ $cat ] ) ? $labels[ $cat ] : __( 'Материал', 'portal-theme' );
+	$img_alt   = $cat_label;
 
 	$raw_s      = wp_strip_all_tags( $title_t . ' ' . $excerpt_t );
 	$search_idx = function_exists( 'mb_strtolower' ) ? mb_strtolower( $raw_s, 'UTF-8' ) : strtolower( $raw_s );
@@ -664,20 +621,22 @@ function portal_theme_ideology_render_card( array $item ) {
 
 	$open_data = portal_theme_ideology_build_open_data( $item );
 	$open_json = wp_json_encode( $open_data, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT );
+	$card_id   = isset( $item['id'] ) ? (int) $item['id'] : 0;
 
 	ob_start();
 	?>
-	<article class="ideology-card" data-ideology-category="<?php echo esc_attr( $cat ); ?>" data-ideology-search="<?php echo esc_attr( $search_idx ); ?>">
+	<article<?php echo $card_id > 0 ? ' id="' . esc_attr( 'ideology-material-' . (string) $card_id ) . '"' : ''; ?> class="ideology-card" data-ideology-category="<?php echo esc_attr( $cat ); ?>" data-ideology-search="<?php echo esc_attr( $search_idx ); ?>">
 		<div class="ideology-card__image">
-			<img src="<?php echo esc_url( $img_src ); ?>" alt="<?php echo esc_attr( $img_alt ); ?>">
+			<?php if ( $thumb_url !== '' ) : ?>
+				<img src="<?php echo esc_url( $img_src ); ?>" alt="<?php echo esc_attr( $img_alt ); ?>">
+			<?php else : ?>
+				<span class="ideology-card__image-label ideology-card__image-label--<?php echo esc_attr( $cat ); ?>" aria-hidden="true"></span>
+			<?php endif; ?>
 		</div>
 		<div class="ideology-card__main">
 			<div class="ideology-card__content">
 				<h2><?php echo esc_html( $title_t ); ?></h2>
 				<p><?php echo esc_html( $excerpt_t ); ?></p>
-			</div>
-			<div class="ideology-card__meta" aria-hidden="true">
-				<span></span><span></span><span></span>
 			</div>
 		</div>
 		<div class="ideology-card__footer">
@@ -689,3 +648,352 @@ function portal_theme_ideology_render_card( array $item ) {
 	<?php
 	return (string) ob_get_clean();
 }
+
+function portal_theme_search_normalize( $text ) {
+	$text = wp_strip_all_tags( (string) $text );
+	$text = trim( preg_replace( '/\s+/u', ' ', $text ) );
+	if ( function_exists( 'mb_strtolower' ) ) {
+		return mb_strtolower( $text, 'UTF-8' );
+	}
+	return strtolower( $text );
+}
+
+function portal_theme_search_pos( $haystack, $needle ) {
+	if ( function_exists( 'mb_stripos' ) ) {
+		return mb_stripos( $haystack, $needle, 0, 'UTF-8' );
+	}
+	return stripos( $haystack, $needle );
+}
+
+function portal_theme_search_score( $query, $title, $excerpt = '', $body = '' ) {
+	$q = portal_theme_search_normalize( $query );
+	if ( $q === '' ) {
+		return 0;
+	}
+
+	$t = portal_theme_search_normalize( $title );
+	$e = portal_theme_search_normalize( $excerpt );
+	$b = portal_theme_search_normalize( $body );
+
+	$score = 0;
+	if ( $t === $q ) {
+		$score += 260;
+	} elseif ( portal_theme_search_pos( $t, $q ) === 0 ) {
+		$score += 220;
+	} elseif ( portal_theme_search_pos( $t, $q ) !== false ) {
+		$score += 180;
+	}
+
+	if ( $e !== '' && portal_theme_search_pos( $e, $q ) !== false ) {
+		$score += 90;
+	}
+	if ( $b !== '' && portal_theme_search_pos( $b, $q ) !== false ) {
+		$score += 60;
+	}
+
+	return $score;
+}
+
+function portal_theme_search_page_url_by_template( $template_template, $fallback_slug = '' ) {
+	$pages = get_pages(
+		array(
+			'meta_key'   => '_wp_page_template',
+			'meta_value' => $template_template,
+			'number'     => 1,
+		)
+	);
+	if ( ! empty( $pages ) ) {
+		$url = get_permalink( (int) $pages[0]->ID );
+		return is_string( $url ) ? $url : '';
+	}
+	if ( is_string( $fallback_slug ) && $fallback_slug !== '' ) {
+		$p = get_page_by_path( $fallback_slug, OBJECT, 'page' );
+		if ( $p instanceof WP_Post ) {
+			$url = get_permalink( $p );
+			return is_string( $url ) ? $url : '';
+		}
+	}
+	return '';
+}
+
+function portal_theme_collect_search_results( $query ) {
+	static $cache = array();
+	$key = portal_theme_search_normalize( (string) $query );
+	if ( isset( $cache[ $key ] ) ) {
+		return $cache[ $key ];
+	}
+	if ( $key === '' ) {
+		$cache[ $key ] = array();
+		return $cache[ $key ];
+	}
+
+	$results = array();
+
+	$push = static function ( $title, $excerpt, $url, $section, $score ) use ( &$results ) {
+		$url = is_string( $url ) ? trim( $url ) : '';
+		if ( $url === '' || (int) $score <= 0 ) {
+			return;
+		}
+		$results[] = array(
+			'title'   => (string) $title,
+			'excerpt' => (string) $excerpt,
+			'url'     => $url,
+			'section' => (string) $section,
+			'score'   => (int) $score,
+		);
+	};
+
+	$core_q = new WP_Query(
+		array(
+			'post_type'           => array( 'page', 'post' ),
+			'post_status'         => 'publish',
+			'posts_per_page'      => 40,
+			's'                   => (string) $query,
+			'ignore_sticky_posts' => true,
+		)
+	);
+	if ( $core_q->have_posts() ) {
+		while ( $core_q->have_posts() ) {
+			$core_q->the_post();
+			$pid     = (int) get_the_ID();
+			$title   = (string) get_the_title();
+			$excerpt = (string) get_the_excerpt();
+			$body    = (string) get_post_field( 'post_content', $pid );
+			$score   = portal_theme_search_score( $query, $title, $excerpt, $body );
+			$push( $title, $excerpt, (string) get_permalink( $pid ), __( 'Страницы и новости', 'portal-theme' ), $score );
+		}
+	}
+	wp_reset_postdata();
+
+	$bp_url = portal_theme_search_page_url_by_template( 'page-biblioteka-praktik.php', 'biblioteka-praktik' );
+	if ( $bp_url !== '' ) {
+		$bp_q = new WP_Query(
+			array(
+				'post_type'      => 'portal_bp_material',
+				'post_status'    => array( 'publish', 'future' ),
+				'posts_per_page' => -1,
+			)
+		);
+		while ( $bp_q->have_posts() ) {
+			$bp_q->the_post();
+			$pid     = (int) get_the_ID();
+			$title   = (string) get_the_title();
+			$excerpt = (string) get_the_excerpt();
+			$score   = portal_theme_search_score( $query, $title, $excerpt );
+			$push( $title, $excerpt, $bp_url . '#bp-material-' . (string) $pid, __( 'Библиотека практик', 'portal-theme' ), $score );
+		}
+		wp_reset_postdata();
+	}
+
+	$ideology_url = portal_theme_search_page_url_by_template( 'page-osnovy-ideologa.php', 'osnovy-ideologa' );
+	if ( $ideology_url !== '' ) {
+		$idl_q = new WP_Query(
+			array(
+				'post_type'      => 'portal_ideology',
+				'post_status'    => array( 'publish', 'future' ),
+				'posts_per_page' => -1,
+			)
+		);
+		while ( $idl_q->have_posts() ) {
+			$idl_q->the_post();
+			$pid     = (int) get_the_ID();
+			$title   = (string) get_the_title();
+			$excerpt = (string) get_the_excerpt();
+			$score   = portal_theme_search_score( $query, $title, $excerpt );
+			$push( $title, $excerpt, $ideology_url . '#ideology-material-' . (string) $pid, __( 'Основы идеолога', 'portal-theme' ), $score );
+		}
+		wp_reset_postdata();
+	}
+
+	$sov_url = portal_theme_search_page_url_by_template( 'page-sovetnik-plus.php', 'sovetnik-plus' );
+	if ( $sov_url !== '' ) {
+		$sov_q = new WP_Query(
+			array(
+				'post_type'      => 'portal_sovetnik',
+				'post_status'    => array( 'publish', 'future' ),
+				'posts_per_page' => -1,
+			)
+		);
+		while ( $sov_q->have_posts() ) {
+			$sov_q->the_post();
+			$pid     = (int) get_the_ID();
+			$title   = (string) get_the_title();
+			$excerpt = (string) get_the_excerpt();
+			$score   = portal_theme_search_score( $query, $title, $excerpt );
+			$push( $title, $excerpt, $sov_url . '#sov-material-' . (string) $pid, __( 'Советник+', 'portal-theme' ), $score );
+		}
+		wp_reset_postdata();
+	}
+
+	$mb_url = portal_theme_search_page_url_by_template( 'page-mediabank.php', 'mediabank' );
+	if ( $mb_url !== '' ) {
+		$mb_q = new WP_Query(
+			array(
+				'post_type'      => 'portal_mediabank',
+				'post_status'    => array( 'publish', 'future' ),
+				'posts_per_page' => -1,
+			)
+		);
+		while ( $mb_q->have_posts() ) {
+			$mb_q->the_post();
+			$pid   = (int) get_the_ID();
+			$title = (string) get_the_title();
+			$type  = (string) get_post_meta( $pid, '_portal_mb_type', true );
+			$score = portal_theme_search_score( $query, $title, $type );
+			$push( $title, $type, $mb_url . '#mediabank-item-' . (string) $pid, __( 'Медиабанк', 'portal-theme' ), $score );
+		}
+		wp_reset_postdata();
+	}
+
+	$analytics_id  = function_exists( 'portal_theme_analytics_get_page_id' ) ? (int) portal_theme_analytics_get_page_id() : 0;
+	$analytics_url = $analytics_id > 0 ? (string) get_permalink( $analytics_id ) : portal_theme_search_page_url_by_template( 'page-analytics.php', 'analytics' );
+	if ( $analytics_url !== '' ) {
+		$at_q = new WP_Query(
+			array(
+				'post_type'      => 'portal_at_task',
+				'post_status'    => array( 'publish', 'future' ),
+				'posts_per_page' => -1,
+			)
+		);
+		while ( $at_q->have_posts() ) {
+			$at_q->the_post();
+			$pid     = (int) get_the_ID();
+			$title   = (string) get_the_title();
+			$excerpt = (string) get_the_excerpt();
+			$body    = (string) get_post_field( 'post_content', $pid );
+			$score   = portal_theme_search_score( $query, $title, $excerpt, $body );
+			$url     = add_query_arg( 'open_task', (string) $pid, $analytics_url ) . '#analytics-task-' . (string) $pid;
+			$push( $title, $excerpt, $url, __( 'Аналитика и эффективность', 'portal-theme' ), $score );
+		}
+		wp_reset_postdata();
+	}
+
+	$kse_url = portal_theme_search_page_url_by_template( 'page-kalendar-klyuchevyy-sobytiy.php', 'kalendar-klyuchevyy-sobytiy' );
+	if ( $kse_url !== '' ) {
+		$kse_q = new WP_Query(
+			array(
+				'post_type'      => 'portal_kse_event',
+				'post_status'    => array( 'publish', 'future' ),
+				'posts_per_page' => -1,
+			)
+		);
+		while ( $kse_q->have_posts() ) {
+			$kse_q->the_post();
+			$pid     = (int) get_the_ID();
+			$title   = (string) get_the_title();
+			$excerpt = (string) get_the_excerpt();
+			$date    = (string) get_post_meta( $pid, '_portal_kse_date', true );
+			$score   = portal_theme_search_score( $query, $title, $excerpt, $date );
+			$url     = add_query_arg(
+				array(
+					'portal_find' => $title,
+					'portal_date' => $date,
+				),
+				$kse_url
+			);
+			$push( $title, $excerpt, $url, __( 'Календарь ключевых событий', 'portal-theme' ), $score );
+		}
+		wp_reset_postdata();
+	}
+
+	$cal_url = portal_theme_search_page_url_by_template( 'page-kalendar-meropriyatiy.php', 'kalendar-meropriyatiy' );
+	if ( $cal_url !== '' ) {
+		$cal_q = new WP_Query(
+			array(
+				'post_type'      => 'portal_cal_merop',
+				'post_status'    => array( 'publish', 'future' ),
+				'posts_per_page' => -1,
+			)
+		);
+		while ( $cal_q->have_posts() ) {
+			$cal_q->the_post();
+			$pid     = (int) get_the_ID();
+			$title   = (string) get_the_title();
+			$excerpt = (string) get_the_excerpt();
+			$date    = (string) get_post_meta( $pid, '_portal_cal_merop_date', true );
+			$score   = portal_theme_search_score( $query, $title, $excerpt, $date );
+			$url     = add_query_arg(
+				array(
+					'portal_find' => $title,
+					'portal_date' => $date,
+				),
+				$cal_url
+			);
+			$push( $title, $excerpt, $url, __( 'Календарь мероприятий', 'portal-theme' ), $score );
+		}
+		wp_reset_postdata();
+	}
+
+	usort(
+		$results,
+		static function ( $a, $b ) {
+			$score_cmp = (int) $b['score'] <=> (int) $a['score'];
+			if ( 0 !== $score_cmp ) {
+				return $score_cmp;
+			}
+			return strcmp( (string) $a['title'], (string) $b['title'] );
+		}
+	);
+
+	$seen   = array();
+	$unique = array();
+	foreach ( $results as $item ) {
+		$key_u = (string) $item['url'];
+		if ( isset( $seen[ $key_u ] ) ) {
+			continue;
+		}
+		$seen[ $key_u ] = true;
+		$unique[]       = $item;
+	}
+
+	$cache[ $key ] = $unique;
+	return $cache[ $key ];
+}
+
+function portal_theme_search_best_redirect_url( array $results ) {
+	if ( empty( $results ) ) {
+		return '';
+	}
+	if ( count( $results ) === 1 ) {
+		return (string) $results[0]['url'];
+	}
+	$top    = (int) $results[0]['score'];
+	$second = (int) $results[1]['score'];
+	if ( $top >= 240 ) {
+		return (string) $results[0]['url'];
+	}
+	if ( $top >= 190 && ( $top - $second ) >= 50 ) {
+		return (string) $results[0]['url'];
+	}
+	return '';
+}
+
+function portal_theme_setup_global_search_query( $query ) {
+	if ( ! ( $query instanceof WP_Query ) || is_admin() || ! $query->is_main_query() || ! $query->is_search() ) {
+		return;
+	}
+	$query->set( 'post_type', array( 'page', 'post' ) );
+	$query->set( 'post_status', 'publish' );
+}
+add_action( 'pre_get_posts', 'portal_theme_setup_global_search_query' );
+
+function portal_theme_search_maybe_redirect_to_best_match() {
+	if ( is_admin() || ! is_search() ) {
+		return;
+	}
+	$mode = isset( $_GET['portal_search_mode'] ) ? sanitize_key( wp_unslash( $_GET['portal_search_mode'] ) ) : '';
+	if ( 'results' === $mode ) {
+		return;
+	}
+	$query = get_search_query();
+	if ( ! is_string( $query ) || trim( $query ) === '' ) {
+		return;
+	}
+	$results = portal_theme_collect_search_results( $query );
+	$target  = portal_theme_search_best_redirect_url( $results );
+	if ( $target !== '' ) {
+		wp_safe_redirect( $target );
+		exit;
+	}
+}
+add_action( 'template_redirect', 'portal_theme_search_maybe_redirect_to_best_match', 1 );

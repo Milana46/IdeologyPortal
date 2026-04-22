@@ -12,7 +12,7 @@
 		'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'
 	];
 
-	/** Фиксированные по M-D государственные даты (РБ и общие). */
+	
 	var FIXED_STATE_MD = {
 		'01-01': true,
 		'01-07': true,
@@ -56,6 +56,10 @@
 	var viewYear;
 	var viewMonth;
 	var selectedISODate = null;
+	var initialParams = null;
+	try {
+		initialParams = new URLSearchParams(window.location.search);
+	} catch (e) {}
 
 	var elGrid = document.getElementById('calendar-grid');
 	var elMonth = document.getElementById('calendar-month-heading');
@@ -575,6 +579,21 @@
 
 	var now = new Date();
 	setView(now.getFullYear(), now.getMonth() + 1);
+	if (initialParams) {
+		var initialSearch = initialParams.get('portal_find');
+		if (initialSearch && elSearch) {
+			elSearch.value = initialSearch;
+		}
+		var initialDate = initialParams.get('portal_date');
+		if (initialDate && /^\d{4}-\d{2}-\d{2}$/.test(initialDate)) {
+			var parts = initialDate.split('-');
+			var y = parseInt(parts[0], 10);
+			var m = parseInt(parts[1], 10);
+			if (!isNaN(y) && !isNaN(m) && m >= 1 && m <= 12) {
+				setView(y, m);
+			}
+		}
+	}
 	renderMonth();
 	renderSideLists();
 })();

@@ -1,5 +1,3 @@
-/* Страница «Аналитика и эффективность» */
-
 .analytics-page {
 	max-width: 100%;
 }
@@ -41,7 +39,6 @@
 	color: #5c7099;
 }
 
-/* Герой: в один ряд — иконка | текст | иллюстрация (как в макете). */
 .analytics-hero {
 	display: flex;
 	flex-direction: row;
@@ -247,6 +244,7 @@
 	min-width: 132px;
 	height: 48px;
 	padding: 0 22px;
+	border: none;
 	border-radius: 10px;
 	margin-top: 0;
 }
@@ -479,7 +477,6 @@
 	border: 0;
 }
 
-/* Модальное окно задачи */
 .analytics-modal {
 	position: fixed;
 	inset: 0;
@@ -631,7 +628,6 @@
 	}
 }
 
-/* Одна колонка только на узких экранах — горизонтальный герой до ~560px. */
 @media (max-width: 560px) {
 	.analytics-hero {
 		flex-direction: column;

@@ -1,25 +1,13 @@
 <?php
-/**
- * Медиабанк: тип записей и метаполя для панели администратора.
- */
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-/**
- * Допустимые типы карточки (вкладки на сайте).
- *
- * @return string[]
- */
 function portal_theme_mediabank_type_slugs() {
 	return array( 'photo', 'video', 'infographic', 'logo' );
 }
 
-/**
- * Подписи типов для админки.
- *
- * @return array<string,string>
- */
 function portal_theme_mediabank_type_labels() {
 	return array(
 		'photo'        => __( 'Фото', 'portal-theme' ),
@@ -29,9 +17,6 @@ function portal_theme_mediabank_type_labels() {
 	);
 }
 
-/**
- * Регистрация типа записей.
- */
 function portal_theme_mediabank_register_post_type() {
 	register_post_type(
 		'portal_mediabank',
@@ -68,12 +53,6 @@ function portal_theme_mediabank_register_post_type() {
 }
 add_action( 'init', 'portal_theme_mediabank_register_post_type' );
 
-/**
- * ID вложения для превью карточки: обложка записи или, если её нет, прикреплённый файл-изображение.
- *
- * @param int $post_id ID записи portal_mediabank.
- * @return int
- */
 function portal_theme_mediabank_resolve_thumbnail_id( $post_id ) {
 	$post_id = (int) $post_id;
 	if ( $post_id <= 0 ) {
@@ -95,12 +74,6 @@ function portal_theme_mediabank_resolve_thumbnail_id( $post_id ) {
 	return 0;
 }
 
-/**
- * ID вложений галереи (фото и видео в одной публикации), порядок как в админке.
- *
- * @param int $post_id ID записи.
- * @return int[]
- */
 function portal_theme_mediabank_get_gallery_ids( $post_id ) {
 	$post_id = (int) $post_id;
 	if ( $post_id <= 0 ) {
@@ -124,12 +97,6 @@ function portal_theme_mediabank_get_gallery_ids( $post_id ) {
 	return array_values( array_unique( $out ) );
 }
 
-/**
- * Только изображения и видео для карусели на сайте.
- *
- * @param int $post_id ID записи.
- * @return array<int, array{id:int, is_video:bool, src:string, full:string, mime:string}>
- */
 function portal_theme_mediabank_get_slide_items( $post_id ) {
 	$items = array();
 	foreach ( portal_theme_mediabank_get_gallery_ids( $post_id ) as $id ) {
@@ -159,10 +126,6 @@ function portal_theme_mediabank_get_slide_items( $post_id ) {
 	return $items;
 }
 
-/**
- * @param int[] $ids Сырые ID.
- * @return int[]
- */
 function portal_theme_mediabank_sanitize_gallery_ids( array $ids ) {
 	$out = array();
 	foreach ( $ids as $id ) {
@@ -185,12 +148,6 @@ function portal_theme_mediabank_sanitize_gallery_ids( array $ids ) {
 	return array_values( array_unique( $out ) );
 }
 
-/**
- * URL для открытия по клику на карточке (файл или полноразмерная обложка).
- *
- * @param int $post_id ID записи portal_mediabank.
- * @return string
- */
 function portal_theme_mediabank_card_link_url( $post_id ) {
 	$post_id = (int) $post_id;
 	if ( $post_id <= 0 ) {
@@ -220,9 +177,6 @@ function portal_theme_mediabank_card_link_url( $post_id ) {
 	return '';
 }
 
-/**
- * Метабокс: тип материала и прикреплённый файл.
- */
 function portal_theme_mediabank_add_meta_box() {
 	add_meta_box(
 		'portal_mb_details',
@@ -235,9 +189,6 @@ function portal_theme_mediabank_add_meta_box() {
 }
 add_action( 'add_meta_boxes', 'portal_theme_mediabank_add_meta_box' );
 
-/**
- * @param WP_Post $post Post.
- */
 function portal_theme_mediabank_meta_box_render( $post ) {
 	wp_nonce_field( 'portal_mb_save_meta', 'portal_mb_meta_nonce' );
 	$type     = get_post_meta( $post->ID, '_portal_mb_type', true );
@@ -324,11 +275,6 @@ function portal_theme_mediabank_meta_box_render( $post ) {
 	<?php
 }
 
-/**
- * Сохранение метаполей.
- *
- * @param int $post_id ID записи.
- */
 function portal_theme_mediabank_save_meta( $post_id ) {
 	if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
 		return;
@@ -376,11 +322,6 @@ function portal_theme_mediabank_save_meta( $post_id ) {
 }
 add_action( 'save_post_portal_mediabank', 'portal_theme_mediabank_save_meta' );
 
-/**
- * Скрипты и стили в админке для выбора файла.
- *
- * @param string $hook_suffix Hook.
- */
 function portal_theme_mediabank_admin_assets( $hook_suffix ) {
 	$screen = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
 	if ( ! $screen || $screen->post_type !== 'portal_mediabank' ) {
@@ -424,12 +365,6 @@ function portal_theme_mediabank_admin_assets( $hook_suffix ) {
 }
 add_action( 'admin_enqueue_scripts', 'portal_theme_mediabank_admin_assets' );
 
-/**
- * Колонка «Обложка» в списке материалов.
- *
- * @param string[] $columns Колонки.
- * @return string[]
- */
 function portal_theme_mediabank_posts_columns( $columns ) {
 	$new = array();
 	foreach ( $columns as $key => $label ) {
@@ -442,12 +377,6 @@ function portal_theme_mediabank_posts_columns( $columns ) {
 }
 add_filter( 'manage_portal_mediabank_posts_columns', 'portal_theme_mediabank_posts_columns' );
 
-/**
- * Вывод колонки обложки.
- *
- * @param string $column Имя колонки.
- * @param int    $post_id ID записи.
- */
 function portal_theme_mediabank_posts_custom_column( $column, $post_id ) {
 	if ( 'portal_mb_thumb' !== $column ) {
 		return;

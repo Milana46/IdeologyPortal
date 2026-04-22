@@ -1,0 +1,40 @@
+/**
+ * Экран «Инструкция (форум)» в консоли WordPress.
+ */
+
+.portal-admin-instruction__viewer {
+    margin: 16px 0 20px;
+    background: #f0f0f1;
+    border: 1px solid #c3c4c7;
+    border-radius: 4px;
+    overflow: hidden;
+    max-width: 960px;
+}
+
+.portal-admin-instruction__frame {
+    display: block;
+    width: 100%;
+    height: min(70vh, 640px);
+    min-height: 320px;
+    border: 0;
+    background: #fff;
+    vertical-align: top;
+}
+
+.portal-admin-instruction__fallback {
+    margin: 0 !important;
+    border-radius: 0;
+    border-left: none;
+    border-right: none;
+    box-shadow: none;
+}
+
+.portal-admin-instruction__filename {
+    margin: 0 0 12px;
+    font-size: 13px;
+    color: #646970;
+}
+
+.portal-admin-instruction__actions {
+    margin-top: 8px;
+}

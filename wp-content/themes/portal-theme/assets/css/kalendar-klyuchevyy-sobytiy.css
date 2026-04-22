@@ -1,6 +1,4 @@
-/**
- * Календарь ключевых событий.
- */
+
 :root {
     --kse-blue: #1a56be;
     --kse-blue-dark: #243b7a;
@@ -504,7 +502,19 @@
     color: var(--kse-blue);
 }
 
-/* Модальное окно события */
+.kse-upcoming-item__link {
+    display: inline-block;
+    margin: 0 0 8px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--kse-blue);
+    text-decoration: underline;
+}
+
+.kse-upcoming-item__link:hover {
+    color: #174a9e;
+}
+
 .kse-modal[hidden] {
     display: none !important;
 }
@@ -746,6 +756,19 @@
     font-size: 14px;
     line-height: 1.45;
     color: var(--kse-muted);
+}
+
+.kse-modal__view-item-link {
+    display: inline-block;
+    margin-top: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--kse-blue);
+    text-decoration: underline;
+}
+
+.kse-modal__view-item-link:hover {
+    color: #174a9e;
 }
 
 .kse-btn--ghost {

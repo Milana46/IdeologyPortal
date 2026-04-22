@@ -1,24 +1,16 @@
 <?php
-/**
- * Раздел «Аналитика и эффективность»: тип записей «Задачи» только для админки.
- */
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
 if ( ! defined( 'PORTAL_THEME_ANALYTICS_PAGE_REPUBLISH_VER' ) ) {
-	/**
-	 * Увеличьте число, чтобы снова один раз обновить автора и даты страницы раздела.
-	 */
+	
 	define( 'PORTAL_THEME_ANALYTICS_PAGE_REPUBLISH_VER', 1 );
 }
 
 if ( ! function_exists( 'portal_theme_is_analytics_page' ) ) {
-	/**
-	 * Страница раздела «Аналитика» (мета шаблон, иерархия page-analytics.php, is_page_template).
-	 *
-	 * @return bool
-	 */
+	
 	function portal_theme_is_analytics_page() {
 		if ( is_admin() ) {
 			return false;
@@ -60,9 +52,7 @@ if ( ! function_exists( 'portal_theme_is_analytics_page' ) ) {
 }
 
 if ( ! function_exists( 'portal_theme_enqueue_analytics_page_assets' ) ) {
-	/**
-	 * Стили и скрипты раздела (вызывается с wp_enqueue_scripts, в т.ч. из шаблона до get_header).
-	 */
+	
 	function portal_theme_enqueue_analytics_page_assets() {
 		if ( wp_style_is( 'portal-analytics-page', 'enqueued' ) ) {
 			return;
@@ -89,11 +79,6 @@ if ( ! function_exists( 'portal_theme_enqueue_analytics_page_assets' ) ) {
 	}
 }
 
-/**
- * ID опубликованной страницы раздела «Аналитика и эффективность».
- *
- * @return int
- */
 function portal_theme_analytics_get_page_id() {
 	$pages = get_pages(
 		array(
@@ -109,12 +94,6 @@ function portal_theme_analytics_get_page_id() {
 	return $p instanceof WP_Post ? (int) $p->ID : 0;
 }
 
-/**
- * Страница с шаблоном / разделом «Аналитика и эффективность».
- *
- * @param int $post_id Page ID.
- * @return bool
- */
 function portal_theme_analytics_is_section_page( $post_id ) {
 	$post_id = (int) $post_id;
 	if ( $post_id <= 0 ) {
@@ -128,12 +107,6 @@ function portal_theme_analytics_is_section_page( $post_id ) {
 	return is_string( $tpl ) && 'page-analytics.php' === basename( $tpl );
 }
 
-/**
- * meta_query: задачи, относящиеся к странице раздела (и старые без метаполя).
- *
- * @param int $section_page_id Page ID.
- * @return array<int, array<string, mixed>>
- */
 function portal_theme_analytics_tasks_meta_query_for_section( $section_page_id ) {
 	$section_page_id = (int) $section_page_id;
 	if ( $section_page_id <= 0 ) {
@@ -153,9 +126,6 @@ function portal_theme_analytics_tasks_meta_query_for_section( $section_page_id )
 	);
 }
 
-/**
- * Скрытое поле: к какой странице раздела относится задача (для сохранения при публикации).
- */
 function portal_theme_analytics_task_section_hidden_field() {
 	global $post;
 	$screen = get_current_screen();
@@ -166,7 +136,7 @@ function portal_theme_analytics_task_section_hidden_field() {
 	if ( $post && $post->ID ) {
 		$sid = (int) get_post_meta( $post->ID, '_portal_at_section_page_id', true );
 	}
-	if ( $sid <= 0 && isset( $_GET['portal_from_section'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+	if ( $sid <= 0 && isset( $_GET['portal_from_section'] ) ) {
 		$sid = absint( wp_unslash( $_GET['portal_from_section'] ) );
 	}
 	if ( $sid <= 0 ) {
@@ -179,15 +149,12 @@ function portal_theme_analytics_task_section_hidden_field() {
 }
 add_action( 'edit_form_after_title', 'portal_theme_analytics_task_section_hidden_field', 1 );
 
-/**
- * Подсказка при создании задачи со страницы раздела.
- */
 function portal_theme_analytics_admin_new_task_notice() {
 	$screen = get_current_screen();
 	if ( ! $screen || 'portal_at_task' !== $screen->post_type || 'add' !== $screen->action ) {
 		return;
 	}
-	if ( empty( $_GET['portal_from_section'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+	if ( empty( $_GET['portal_from_section'] ) ) {
 		return;
 	}
 	$pid = absint( wp_unslash( $_GET['portal_from_section'] ) );
@@ -199,20 +166,11 @@ function portal_theme_analytics_admin_new_task_notice() {
 		return;
 	}
 	echo '<div class="notice notice-info is-dismissible"><p>';
-	printf(
-		/* translators: %s: page title. */
-		esc_html__( 'Эта задача будет показана в блоке «Текущие задачи» на странице «%s» после публикации.', 'portal-theme' ),
-		esc_html( get_the_title( $page ) )
-	);
+	printf( esc_html__( 'Эта задача будет показана в блоке «Текущие задачи» на странице «%s» после публикации.', 'portal-theme' ), esc_html( get_the_title( $page ) ) );
 	echo '</p></div>';
 }
 add_action( 'admin_notices', 'portal_theme_analytics_admin_new_task_notice' );
 
-/**
- * Метабокс на экране страницы раздела: список задач и добавление материалов.
- *
- * @param WP_Post $post Page.
- */
 function portal_theme_analytics_page_tasks_metabox_render( $post ) {
 	if ( ! $post instanceof WP_Post || ! portal_theme_analytics_is_section_page( $post->ID ) ) {
 		return;
@@ -285,9 +243,6 @@ function portal_theme_analytics_page_tasks_metabox_render( $post ) {
 	<?php
 }
 
-/**
- * @param WP_Post $post Page being edited.
- */
 function portal_theme_analytics_register_page_section_metabox( $post ) {
 	if ( ! $post instanceof WP_Post || ! portal_theme_analytics_is_section_page( $post->ID ) ) {
 		return;
@@ -303,11 +258,6 @@ function portal_theme_analytics_register_page_section_metabox( $post ) {
 }
 add_action( 'add_meta_boxes_page', 'portal_theme_analytics_register_page_section_metabox', 10, 1 );
 
-/**
- * Автор страницы раздела «как у остальных»: логин admin или самый ранний администратор.
- *
- * @return int
- */
 function portal_theme_analytics_section_page_author_id() {
 	$by_login = get_user_by( 'login', 'admin' );
 	if ( $by_login instanceof WP_User ) {
@@ -328,9 +278,6 @@ function portal_theme_analytics_section_page_author_id() {
 	return 1;
 }
 
-/**
- * Однократно после выката: переопубликовать страницу раздела (дата — сейчас, автор — admin).
- */
 function portal_theme_analytics_maybe_republish_section_page() {
 	if ( wp_installing() ) {
 		return;
@@ -364,9 +311,6 @@ function portal_theme_analytics_maybe_republish_section_page() {
 }
 add_action( 'init', 'portal_theme_analytics_maybe_republish_section_page', 99 );
 
-/**
- * Создаёт страницу раздела при активации темы / по init, если файла шаблона нет — не создаёт.
- */
 function portal_theme_ensure_analytics_page() {
 	if ( wp_installing() ) {
 		return;
@@ -407,9 +351,6 @@ function portal_theme_ensure_analytics_page() {
 }
 add_action( 'init', 'portal_theme_ensure_analytics_page', 98 );
 
-/**
- * @return array<int, array{title:string, sub:string, url:string, icon:string}>
- */
 function portal_theme_analytics_default_popular_rows() {
 	$sub = __( 'Краткая информация', 'portal-theme' );
 	return array(
@@ -434,9 +375,6 @@ function portal_theme_analytics_default_popular_rows() {
 	);
 }
 
-/**
- * @return array<int, array{title:string, sub:string, url:string, icon:string}>
- */
 function portal_theme_analytics_get_popular_rows() {
 	$raw = get_option( 'portal_theme_analytics_popular', null );
 	if ( ! is_array( $raw ) || array() === $raw ) {
@@ -464,19 +402,11 @@ function portal_theme_analytics_get_popular_rows() {
 	return $out !== array() ? $out : portal_theme_analytics_default_popular_rows();
 }
 
-/**
- * Редирект на список сообщений (отдельный slug — не использовать edit.php?post_type= в slug подменю).
- */
 function portal_theme_analytics_redirect_to_messages_admin() {
 	wp_safe_redirect( admin_url( 'edit.php?post_type=portal_at_question' ) );
 	exit;
 }
 
-/**
- * Slug родительского пункта «Аналитика» в $submenu (иногда ключ отличается от ожидаемого).
- *
- * @return string
- */
 function portal_theme_analytics_task_menu_parent_slug() {
 	global $submenu;
 	$preferred = 'edit.php?post_type=portal_at_task';
@@ -494,9 +424,6 @@ function portal_theme_analytics_task_menu_parent_slug() {
 	return $preferred;
 }
 
-/**
- * Подменю «Аналитика»: сообщения и настройки блоков. Два приоритета — если ядро ещё не выставило $submenu.
- */
 function portal_theme_analytics_register_analytics_extra_submenus() {
 	static $done = false;
 	if ( $done ) {
@@ -535,9 +462,6 @@ function portal_theme_analytics_register_analytics_extra_submenus() {
 add_action( 'admin_menu', 'portal_theme_analytics_register_analytics_extra_submenus', 20 );
 add_action( 'admin_menu', 'portal_theme_analytics_register_analytics_extra_submenus', 2000 );
 
-/**
- * Экран настроек: до шести строк «Популярные материалы».
- */
 function portal_theme_analytics_settings_page_render() {
 	if ( ! current_user_can( 'manage_options' ) ) {
 		wp_die( esc_html__( 'Недостаточно прав.', 'portal-theme' ) );
@@ -614,19 +538,10 @@ function portal_theme_analytics_settings_page_render() {
 	<?php
 }
 
-/**
- * @return string[]
- */
 function portal_theme_analytics_priority_slugs() {
 	return array( 'red', 'yellow', 'green' );
 }
 
-/**
- * ID вложений (документов), прикреплённых к задаче.
- *
- * @param int $post_id Task ID.
- * @return int[]
- */
 function portal_theme_analytics_get_task_document_ids( $post_id ) {
 	$post_id = (int) $post_id;
 	if ( $post_id <= 0 ) {
@@ -640,9 +555,6 @@ function portal_theme_analytics_get_task_document_ids( $post_id ) {
 	return array_values( array_filter( array_unique( $ids ) ) );
 }
 
-/**
- * Подсказка в редакторе задачи.
- */
 function portal_theme_analytics_edit_form_after_title() {
 	$screen = get_current_screen();
 	if ( ! $screen || 'portal_at_task' !== $screen->post_type ) {
@@ -654,11 +566,6 @@ function portal_theme_analytics_edit_form_after_title() {
 }
 add_action( 'edit_form_after_title', 'portal_theme_analytics_edit_form_after_title' );
 
-/**
- * Скрипты медиатеки и сортировки списка файлов в админке задачи.
- *
- * @param string $hook Hook suffix.
- */
 function portal_theme_analytics_admin_enqueue( $hook ) {
 	if ( ! in_array( $hook, array( 'post.php', 'post-new.php' ), true ) ) {
 		return;
@@ -690,9 +597,6 @@ function portal_theme_analytics_admin_enqueue( $hook ) {
 }
 add_action( 'admin_enqueue_scripts', 'portal_theme_analytics_admin_enqueue' );
 
-/**
- * Старый ярлык был длиннее 20 символов — WordPress не регистрировал CPT. Перенос старых записей из БД.
- */
 function portal_theme_analytics_migrate_task_post_type_slug() {
 	if ( wp_installing() ) {
 		return;
@@ -702,7 +606,6 @@ function portal_theme_analytics_migrate_task_post_type_slug() {
 	}
 	global $wpdb;
 	$legacy = 'portal_' . 'analytics_task';
-	// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 	$wpdb->query(
 		$wpdb->prepare(
 			"UPDATE {$wpdb->posts} SET post_type = %s WHERE post_type = %s",
@@ -715,16 +618,13 @@ function portal_theme_analytics_migrate_task_post_type_slug() {
 }
 add_action( 'init', 'portal_theme_analytics_migrate_task_post_type_slug', 5 );
 
-/**
- * Старые ссылки с post_type=portal_analytics_task (21 символ) вели на «Invalid post type».
- */
 function portal_theme_analytics_redirect_legacy_task_admin_urls() {
 	if ( ! is_admin() || ! is_user_logged_in() ) {
 		return;
 	}
 	global $pagenow;
 	$legacy = 'portal_' . 'analytics_task';
-	if ( empty( $_GET['post_type'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+	if ( empty( $_GET['post_type'] ) ) {
 		return;
 	}
 	$pt = sanitize_key( wp_unslash( $_GET['post_type'] ) );
@@ -741,9 +641,6 @@ function portal_theme_analytics_redirect_legacy_task_admin_urls() {
 }
 add_action( 'admin_init', 'portal_theme_analytics_redirect_legacy_task_admin_urls', 0 );
 
-/**
- * Регистрация CPT.
- */
 function portal_theme_analytics_register_cpt() {
 	register_post_type(
 		'portal_at_task',
@@ -778,9 +675,6 @@ function portal_theme_analytics_register_cpt() {
 }
 add_action( 'init', 'portal_theme_analytics_register_cpt' );
 
-/**
- * Сообщения с формы на странице аналитики (те же права на список, что и у «Задач»).
- */
 function portal_theme_analytics_register_question_cpt() {
 	register_post_type(
 		'portal_at_question',
@@ -800,7 +694,6 @@ function portal_theme_analytics_register_question_cpt() {
 			'public'             => false,
 			'publicly_queryable' => false,
 			'show_ui'            => true,
-			/* Пункт меню — portal_theme_analytics_register_analytics_extra_submenus(). */
 			'show_in_menu'       => false,
 			'capability_type'    => 'post',
 			'map_meta_cap'       => true,
@@ -812,9 +705,6 @@ function portal_theme_analytics_register_question_cpt() {
 }
 add_action( 'init', 'portal_theme_analytics_register_question_cpt', 11 );
 
-/**
- * В карточке вопроса: IP отправки (если есть).
- */
 function portal_theme_analytics_question_meta_boxes() {
 	add_meta_box(
 		'portal_at_question_meta',
@@ -837,12 +727,6 @@ function portal_theme_analytics_question_meta_boxes() {
 }
 add_action( 'add_meta_boxes_portal_at_question', 'portal_theme_analytics_question_meta_boxes' );
 
-/**
- * Сохранить текст вопроса из формы (запись CPT + опционально письмо).
- *
- * @param string $text Текст вопроса.
- * @return int Post ID или 0.
- */
 function portal_theme_analytics_store_visitor_question( $text ) {
 	$text = trim( (string) $text );
 	if ( $text === '' ) {
@@ -859,12 +743,17 @@ function portal_theme_analytics_store_visitor_question( $text ) {
 		? portal_theme_analytics_section_page_author_id()
 		: 1;
 	if ( $author_id <= 0 || ! get_userdata( $author_id ) ) {
-		$author_id = 1;
+		$admins = get_users(
+			array(
+				'role'    => 'administrator',
+				'number'  => 1,
+				'orderby' => 'ID',
+				'order'   => 'ASC',
+				'fields'  => 'ID',
+			)
+		);
+		$author_id = ! empty( $admins ) ? (int) $admins[0] : 1;
 	}
-	/*
-	 * Гости (admin_post_nopriv): нет прав на создание записи. Переключаем пользователя
-	 * и на время вставки ослабляем проверки capability (некоторые плагины смотрят не только current_user).
-	 */
 	$prev_uid = get_current_user_id();
 	wp_set_current_user( $author_id );
 
@@ -901,10 +790,72 @@ function portal_theme_analytics_store_visitor_question( $text ) {
 
 	if ( is_wp_error( $post_id ) ) {
 		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
 			error_log( 'portal_at_question insert: ' . $post_id->get_error_message() );
 		}
-		return 0;
+		$post_id = 0;
+	}
+	if ( ! $post_id ) {
+		global $wpdb;
+		$now_local = current_time( 'mysql' );
+		$now_gmt   = current_time( 'mysql', 1 );
+		$slug      = sanitize_title( $title );
+		if ( $slug === '' ) {
+			$slug = 'portal-at-question-' . wp_generate_password( 6, false, false );
+		}
+		$inserted = $wpdb->insert(
+			$wpdb->posts,
+			array(
+				'post_author'           => $author_id,
+				'post_date'             => $now_local,
+				'post_date_gmt'         => $now_gmt,
+				'post_content'          => $text,
+				'post_title'            => $title,
+				'post_excerpt'          => '',
+				'post_status'           => 'publish',
+				'comment_status'        => 'closed',
+				'ping_status'           => 'closed',
+				'post_password'         => '',
+				'post_name'             => $slug,
+				'to_ping'               => '',
+				'pinged'                => '',
+				'post_modified'         => $now_local,
+				'post_modified_gmt'     => $now_gmt,
+				'post_content_filtered' => '',
+				'post_parent'           => 0,
+				'guid'                  => '',
+				'menu_order'            => 0,
+				'post_type'             => 'portal_at_question',
+				'post_mime_type'        => '',
+				'comment_count'         => 0,
+			),
+			array(
+				'%d',
+				'%s',
+				'%s',
+				'%s',
+				'%s',
+				'%s',
+				'%s',
+				'%s',
+				'%s',
+				'%s',
+				'%s',
+				'%s',
+				'%s',
+				'%s',
+				'%s',
+				'%d',
+				'%s',
+				'%d',
+				'%s',
+				'%s',
+				'%d',
+			)
+		);
+		if ( false !== $inserted ) {
+			$post_id = (int) $wpdb->insert_id;
+			clean_post_cache( $post_id );
+		}
 	}
 	if ( ! $post_id ) {
 		return 0;
@@ -918,9 +869,6 @@ function portal_theme_analytics_store_visitor_question( $text ) {
 	return (int) $post_id;
 }
 
-/**
- * Метабокс: дедлайн и цвет индикатора.
- */
 function portal_theme_analytics_meta_boxes() {
 	add_meta_box(
 		'portal_at_task_meta',
@@ -941,11 +889,6 @@ function portal_theme_analytics_meta_boxes() {
 }
 add_action( 'add_meta_boxes', 'portal_theme_analytics_meta_boxes' );
 
-/**
- * Метабокс: вложения (PDF, Office, архивы и др.) из медиатеки.
- *
- * @param WP_Post $post Post.
- */
 function portal_theme_analytics_documents_metabox_render( $post ) {
 	$ids = portal_theme_analytics_get_task_document_ids( $post->ID );
 	$value = $ids !== array() ? implode( ',', $ids ) : '';
@@ -983,9 +926,6 @@ function portal_theme_analytics_documents_metabox_render( $post ) {
 	<?php
 }
 
-/**
- * @param WP_Post $post Post.
- */
 function portal_theme_analytics_metabox_render( $post ) {
 	wp_nonce_field( 'portal_at_task_save', 'portal_at_task_nonce' );
 	$deadline = get_post_meta( $post->ID, '_portal_at_deadline', true );
@@ -1012,9 +952,6 @@ function portal_theme_analytics_metabox_render( $post ) {
 	<?php
 }
 
-/**
- * @param int $post_id Post ID.
- */
 function portal_theme_analytics_save_meta( $post_id ) {
 	if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
 		return;
@@ -1070,12 +1007,6 @@ function portal_theme_analytics_save_meta( $post_id ) {
 }
 add_action( 'save_post_portal_at_task', 'portal_theme_analytics_save_meta' );
 
-/**
- * Маркер в значке приоритета.
- *
- * @param string $slug red|yellow|green.
- * @return string
- */
 function portal_theme_analytics_priority_mark( $slug ) {
 	switch ( $slug ) {
 		case 'yellow':
@@ -1088,10 +1019,6 @@ function portal_theme_analytics_priority_mark( $slug ) {
 	}
 }
 
-/**
- * @param int $post_id Task post ID.
- * @return string HTML карточки.
- */
 function portal_theme_analytics_task_card_html( $post_id ) {
 	$post = get_post( $post_id );
 	if ( ! $post || 'portal_at_task' !== $post->post_type ) {
@@ -1114,7 +1041,7 @@ function portal_theme_analytics_task_card_html( $post_id ) {
 
 	ob_start();
 	?>
-	<article class="analytics-task-card" data-task-id="<?php echo esc_attr( (string) $post_id ); ?>">
+	<article id="<?php echo esc_attr( 'analytics-task-' . (string) $post_id ); ?>" class="analytics-task-card" data-task-id="<?php echo esc_attr( (string) $post_id ); ?>">
 		<span class="analytics-task-card__badge analytics-task-card__badge--<?php echo esc_attr( $priority ); ?>" title="<?php esc_attr_e( 'Приоритет', 'portal-theme' ); ?>" aria-hidden="true"><?php echo esc_html( $mark ); ?></span>
 		<div class="analytics-task-card__body">
 			<h2 class="analytics-task-card__title"><?php echo esc_html( get_the_title( $post ) ); ?></h2>
@@ -1136,10 +1063,6 @@ function portal_theme_analytics_task_card_html( $post_id ) {
 	return (string) ob_get_clean();
 }
 
-/**
- * @param int $post_id Task post ID.
- * @return string HTML <template> для модального окна.
- */
 function portal_theme_analytics_task_modal_template_html( $post_id ) {
 	$post = get_post( $post_id );
 	if ( ! $post || 'portal_at_task' !== $post->post_type ) {
@@ -1201,9 +1124,6 @@ function portal_theme_analytics_task_modal_template_html( $post_id ) {
 	return (string) ob_get_clean();
 }
 
-/**
- * Обработка формы «Задайте дополнительные вопросы».
- */
 function portal_theme_analytics_handle_question() {
 	if ( ! isset( $_POST['_wpnonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['_wpnonce'] ) ), 'portal_analytics_ask' ) ) {
 		wp_safe_redirect( home_url( '/' ) );

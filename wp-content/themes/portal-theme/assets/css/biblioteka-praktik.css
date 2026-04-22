@@ -1,6 +1,4 @@
-/**
- * Страница «Библиотека практик» (макет портала Белэнерго).
- */
+
 :root {
     --bp-blue: #1a5fb4;
     --bp-blue-dark: #243b7a;
@@ -273,7 +271,6 @@
     cursor: pointer;
 }
 
-/* Полосы вкладок — те же классы, что на странице «Календарь событий» (kalendar-klyuchevyy-sobytiy.css). */
 .bp-page .kse-tabs {
     margin-bottom: 16px;
 }
@@ -429,7 +426,6 @@ button.bp-featured__thumb.bp-open-doc {
     gap: 14px;
 }
 
-/* Иначе .bp-card { display: grid } перебивает скрытие через атрибут [hidden] в ряде браузеров. */
 .bp-list > .bp-card.bp-card--filtered-out,
 .bp-list > .bp-card[hidden] {
     display: none !important;
@@ -785,7 +781,6 @@ button.bp-featured__thumb.bp-open-doc {
     display: none !important;
 }
 
-/* Модальное окно добавления материала */
 .bp-add-modal {
     border: none;
     border-radius: 16px;

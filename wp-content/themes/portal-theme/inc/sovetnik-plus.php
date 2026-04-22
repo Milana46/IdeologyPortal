@@ -1,25 +1,13 @@
 <?php
-/**
- * Советник+: тип записей и метаполя (wp-admin).
- */
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-/**
- * Категории (вкладки на странице).
- *
- * @return string[]
- */
 function portal_theme_sovetnik_category_slugs() {
 	return array( 'social', 'media', 'events', 'templates' );
 }
 
-/**
- * Подписи категорий.
- *
- * @return array<string,string>
- */
 function portal_theme_sovetnik_category_labels() {
 	return array(
 		'social'    => __( 'Работа в соцсетях', 'portal-theme' ),
@@ -29,12 +17,6 @@ function portal_theme_sovetnik_category_labels() {
 	);
 }
 
-/**
- * Цвет полосы превью по умолчанию по категории.
- *
- * @param string $cat Slug.
- * @return string orange|teal|amber
- */
 function portal_theme_sovetnik_default_tint( $cat ) {
 	$map = array(
 		'social'    => 'orange',
@@ -45,16 +27,10 @@ function portal_theme_sovetnik_default_tint( $cat ) {
 	return isset( $map[ $cat ] ) ? $map[ $cat ] : 'orange';
 }
 
-/**
- * @return string[]
- */
 function portal_theme_sovetnik_thumb_tints() {
 	return array( 'orange', 'teal', 'amber' );
 }
 
-/**
- * Регистрация типа записей.
- */
 function portal_theme_sovetnik_register_post_type() {
 	register_post_type(
 		'portal_sovetnik',
@@ -91,12 +67,6 @@ function portal_theme_sovetnik_register_post_type() {
 }
 add_action( 'init', 'portal_theme_sovetnik_register_post_type' );
 
-/**
- * Данные карточки из записи.
- *
- * @param int|WP_Post $post Post.
- * @return array<string,mixed>|null
- */
 function portal_theme_sovetnik_post_to_item_array( $post ) {
 	$post = get_post( $post );
 	if ( ! $post || 'portal_sovetnik' !== $post->post_type ) {
@@ -133,11 +103,6 @@ function portal_theme_sovetnik_post_to_item_array( $post ) {
 	);
 }
 
-/**
- * HTML карточки в основном списке.
- *
- * @param array<string,mixed> $item Из portal_theme_sovetnik_post_to_item_array().
- */
 function portal_theme_sovetnik_render_card( array $item ) {
 	$cat_labels = portal_theme_sovetnik_category_labels();
 	$cat        = isset( $item['category'] ) ? sanitize_key( $item['category'] ) : 'social';
@@ -153,6 +118,7 @@ function portal_theme_sovetnik_render_card( array $item ) {
 	$search_idx = function_exists( 'mb_strtolower' ) ? mb_strtolower( $raw_s, 'UTF-8' ) : strtolower( $raw_s );
 	$sort_ts    = isset( $item['sort_ts'] ) ? (int) $item['sort_ts'] : 0;
 	$plain_title = wp_strip_all_tags( $title_t );
+	$item_id     = isset( $item['id'] ) ? (int) $item['id'] : 0;
 
 	$viewer_item = array(
 		'title'         => $title_t,
@@ -169,6 +135,7 @@ function portal_theme_sovetnik_render_card( array $item ) {
 	ob_start();
 	?>
 	<article
+		<?php echo $item_id > 0 ? 'id="' . esc_attr( 'sov-material-' . (string) $item_id ) . '"' : ''; ?>
 		class="sov-card"
 		data-sov-category="<?php echo esc_attr( $cat ); ?>"
 		data-sov-search="<?php echo esc_attr( $search_idx ); ?>"
@@ -199,11 +166,6 @@ function portal_theme_sovetnik_render_card( array $item ) {
 	return (string) ob_get_clean();
 }
 
-/**
- * Кнопка сайдбара «Популярные».
- *
- * @param array<string,mixed> $item Item.
- */
 function portal_theme_sovetnik_render_popular_button( array $item ) {
 	$title_t   = isset( $item['title'] ) ? (string) $item['title'] : '';
 	$excerpt_t = isset( $item['excerpt'] ) ? (string) $item['excerpt'] : '';
@@ -234,11 +196,6 @@ function portal_theme_sovetnik_render_popular_button( array $item ) {
 	return (string) ob_get_clean();
 }
 
-/**
- * Кнопка сайдбара «Новые поступления».
- *
- * @param array<string,mixed> $item Item.
- */
 function portal_theme_sovetnik_render_new_button( array $item ) {
 	$title_t   = isset( $item['title'] ) ? (string) $item['title'] : '';
 	$excerpt_t = isset( $item['excerpt'] ) ? (string) $item['excerpt'] : '';
@@ -270,9 +227,6 @@ function portal_theme_sovetnik_render_new_button( array $item ) {
 	return (string) ob_get_clean();
 }
 
-/**
- * Метабокс.
- */
 function portal_theme_sovetnik_add_meta_box() {
 	add_meta_box(
 		'portal_sv_details',
@@ -285,9 +239,6 @@ function portal_theme_sovetnik_add_meta_box() {
 }
 add_action( 'add_meta_boxes', 'portal_theme_sovetnik_add_meta_box' );
 
-/**
- * @param WP_Post $post Post.
- */
 function portal_theme_sovetnik_meta_box_render( $post ) {
 	wp_nonce_field( 'portal_sv_save_meta', 'portal_sv_meta_nonce' );
 	$cat     = get_post_meta( $post->ID, '_portal_sov_category', true );
@@ -353,11 +304,6 @@ function portal_theme_sovetnik_meta_box_render( $post ) {
 	<?php
 }
 
-/**
- * Сохранение метаполей.
- *
- * @param int $post_id ID записи.
- */
 function portal_theme_sovetnik_save_meta( $post_id ) {
 	if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
 		return;
@@ -405,11 +351,6 @@ function portal_theme_sovetnik_save_meta( $post_id ) {
 }
 add_action( 'save_post_portal_sovetnik', 'portal_theme_sovetnik_save_meta' );
 
-/**
- * Админские скрипты.
- *
- * @param string $hook_suffix Hook.
- */
 function portal_theme_sovetnik_admin_assets( $hook_suffix ) {
 	$screen = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
 	if ( ! $screen || $screen->post_type !== 'portal_sovetnik' ) {
@@ -438,12 +379,6 @@ function portal_theme_sovetnik_admin_assets( $hook_suffix ) {
 }
 add_action( 'admin_enqueue_scripts', 'portal_theme_sovetnik_admin_assets' );
 
-/**
- * Колонки списка.
- *
- * @param string[] $columns Колонки.
- * @return string[]
- */
 function portal_theme_sovetnik_posts_columns( $columns ) {
 	$new = array();
 	foreach ( $columns as $key => $label ) {
@@ -457,10 +392,6 @@ function portal_theme_sovetnik_posts_columns( $columns ) {
 }
 add_filter( 'manage_portal_sovetnik_posts_columns', 'portal_theme_sovetnik_posts_columns' );
 
-/**
- * @param string $column Колонка.
- * @param int    $post_id ID.
- */
 function portal_theme_sovetnik_posts_custom_column( $column, $post_id ) {
 	$post_id = (int) $post_id;
 	if ( 'portal_sv_thumb' === $column ) {

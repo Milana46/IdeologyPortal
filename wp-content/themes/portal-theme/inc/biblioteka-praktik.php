@@ -1,21 +1,13 @@
 <?php
-/**
- * Библиотека практик: материалы только через wp-admin.
- */
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-/**
- * @return string[]
- */
 function portal_theme_bp_category_slugs() {
 	return array( 'social', 'smi', 'events', 'templates' );
 }
 
-/**
- * @return array<string,string>
- */
 function portal_theme_bp_category_labels() {
 	return array(
 		'social'    => __( 'Работа в соцсетях', 'portal-theme' ),
@@ -25,9 +17,6 @@ function portal_theme_bp_category_labels() {
 	);
 }
 
-/**
- * Регистрация типа записей.
- */
 function portal_theme_bp_register_post_type() {
 	register_post_type(
 		'portal_bp_material',
@@ -64,9 +53,6 @@ function portal_theme_bp_register_post_type() {
 }
 add_action( 'init', 'portal_theme_bp_register_post_type' );
 
-/**
- * Метабокс: файл и тип.
- */
 function portal_theme_bp_add_meta_boxes() {
 	add_meta_box(
 		'portal_bp_file',
@@ -79,9 +65,6 @@ function portal_theme_bp_add_meta_boxes() {
 }
 add_action( 'add_meta_boxes', 'portal_theme_bp_add_meta_boxes' );
 
-/**
- * @param WP_Post $post Post.
- */
 function portal_theme_bp_metabox_file_render( $post ) {
 	wp_nonce_field( 'portal_bp_save_meta', 'portal_bp_meta_nonce' );
 	$file_id = (int) get_post_meta( $post->ID, '_portal_bp_file_id', true );
@@ -130,11 +113,6 @@ function portal_theme_bp_metabox_file_render( $post ) {
 	<?php
 }
 
-/**
- * Подключение скрипта выбора файла в админке.
- *
- * @param string $hook Hook.
- */
 function portal_theme_bp_admin_scripts( $hook ) {
 	if ( ! in_array( $hook, array( 'post.php', 'post-new.php' ), true ) ) {
 		return;
@@ -157,11 +135,6 @@ function portal_theme_bp_admin_scripts( $hook ) {
 }
 add_action( 'admin_enqueue_scripts', 'portal_theme_bp_admin_scripts' );
 
-/**
- * Сохранение метаполей.
- *
- * @param int $post_id ID.
- */
 function portal_theme_bp_save_post( $post_id ) {
 	if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
 		return;
@@ -194,12 +167,6 @@ function portal_theme_bp_save_post( $post_id ) {
 }
 add_action( 'save_post_portal_bp_material', 'portal_theme_bp_save_post' );
 
-/**
- * Колонки в списке записей.
- *
- * @param string[] $columns Колонки.
- * @return string[]
- */
 function portal_theme_bp_posts_columns( $columns ) {
 	$new = array();
 	foreach ( $columns as $key => $label ) {
@@ -213,10 +180,6 @@ function portal_theme_bp_posts_columns( $columns ) {
 }
 add_filter( 'manage_portal_bp_material_posts_columns', 'portal_theme_bp_posts_columns' );
 
-/**
- * @param string $column Колонка.
- * @param int    $post_id ID.
- */
 function portal_theme_bp_posts_custom_column( $column, $post_id ) {
 	$post_id = (int) $post_id;
 	if ( 'portal_bp_type' === $column ) {
@@ -242,13 +205,6 @@ function portal_theme_bp_posts_custom_column( $column, $post_id ) {
 }
 add_action( 'manage_portal_bp_material_posts_custom_column', 'portal_theme_bp_posts_custom_column', 10, 2 );
 
-/**
- * URL для просмотра и скачивания файла из assets/documents/ темы (устаревший путь для карточек с filename).
- *
- * @param string $filename Имя файла.
- * @param bool   $is_local Локальный хост (Office Online не используется).
- * @return array{doc:string,pdf:string,office_embed:string,has_preview:bool}
- */
 function portal_theme_bp_resolve_doc( $filename, $is_local ) {
 	$out = array(
 		'doc'          => '',
