@@ -6,13 +6,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 <aside class="portal-sidebar">
     <div class="portal-sidebar__top">
-        <div class="portal-sidebar__pattern">
-            <img
-                src="<?php echo esc_url( get_template_directory_uri() . '/assets/img/Rectangle 66 (1).png' ); ?>"
-                alt="Орнамент"
-            >
-        </div>
-        
         <nav class="portal-sidebar__nav" aria-label="Основное меню">
             <a href="<?php echo esc_url( home_url( '/' ) ); ?>" class="portal-sidebar__link<?php echo is_front_page() ? ' is-active' : ''; ?>">
                 Главная
@@ -133,11 +126,4 @@ if ( ! defined( 'ABSPATH' ) ) {
             <img src="<?php echo esc_url( get_template_directory_uri() . '/assets/img/icon_viber.png' ); ?>" alt="">
         </a>
     </div>
-
-    <!-- <div class="portal-sidebar__pattern">
-            <img
-                src="<?php echo esc_url( get_template_directory_uri() . '/assets/img/Rectangle 66 (1).png' ); ?>"
-                alt="Орнамент"
-            >
-        </div> -->
 </aside>
