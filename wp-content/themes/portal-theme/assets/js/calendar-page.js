@@ -37,21 +37,7 @@
 		'12-25': 'Рождество Христово (католическое)'
 	};
 
-	var HOLIDAYS = [
-		{ date: '2025-01-01', title: 'Новый год' },
-		{ date: '2025-01-07', title: 'Рождество Христово (православное)' },
-		{ date: '2025-03-08', title: 'Международный женский день' },
-		{ date: '2025-04-29', title: 'Радуница' },
-		{ date: '2025-05-01', title: 'Праздник Труда' },
-		{ date: '2025-05-09', title: 'День Победы' },
-		{ date: '2025-07-03', title: 'День Независимости Республики Беларусь' },
-		{ date: '2025-11-07', title: 'День Октябрьской революции' },
-		{ date: '2025-12-25', title: 'Рождество Христово (католическое)' },
-		{ date: '2026-01-01', title: 'Новый год' },
-		{ date: '2026-05-01', title: 'Праздник Труда' },
-		{ date: '2026-05-09', title: 'День Победы' },
-		{ date: '2026-07-03', title: 'День Независимости Республики Беларусь' }
-	];
+	var RECUR_YEARS_AHEAD = 15;
 
 	var viewYear;
 	var viewMonth;
@@ -76,6 +62,7 @@
 	var elSort = document.getElementById('calendar-sort-select');
 	var elHolidayList = document.getElementById('calendar-holidays-list');
 	var elMeropList = document.getElementById('calendar-merop-list');
+	var elFoundationList = document.getElementById('calendar-foundation-list');
 
 	if (elModalTitle && strings.modalTitle) {
 		elModalTitle.textContent = strings.modalTitle;
@@ -120,47 +107,59 @@
 		return !!(t || d);
 	}
 
-	function isStateHolidayIso(iso) {
-		var i;
-		for (i = 0; i < HOLIDAYS.length; i++) {
-			if (HOLIDAYS[i].date === iso) {
-				return true;
-			}
+	function eventType(ev) {
+		var t = ev && ev.type ? String(ev.type) : 'merop';
+		if (t === 'holiday' || t === 'foundation' || t === 'merop') {
+			return t;
 		}
-		var md = isoToMD(iso);
-		return !!FIXED_STATE_MD[md];
+		return 'merop';
 	}
 
-	function stateHolidayTitlesForDate(iso) {
-		var titles = [];
-		var seen = {};
-		var i;
-		var t;
-		for (i = 0; i < HOLIDAYS.length; i++) {
-			if (HOLIDAYS[i].date === iso) {
-				t = HOLIDAYS[i].title;
-				if (!seen[t]) {
-					titles.push(t);
-					seen[t] = true;
-				}
-			}
-		}
-		if (titles.length) {
-			return titles;
-		}
-		var md = isoToMD(iso);
-		if (FIXED_STATE_MD[md] && STATE_TITLE_BY_MD[md]) {
-			titles.push(STATE_TITLE_BY_MD[md]);
-		}
-		return titles;
+	function isRecurringType(type) {
+		return type === 'holiday' || type === 'foundation';
 	}
 
-	function eventsOnDate(iso) {
+	function mdExistsInYear(year, md) {
+		var p = md.split('-');
+		if (p.length < 2) {
+			return false;
+		}
+		var m = Number(p[0], 10);
+		var d = Number(p[1], 10);
+		if (!m || !d) {
+			return false;
+		}
+		var dt = new Date(year, m - 1, d);
+		return dt.getFullYear() === year && dt.getMonth() === m - 1 && dt.getDate() === d;
+	}
+
+	function projectEventToIso(ev, iso) {
+		return {
+			id: ev.id,
+			date: iso,
+			title: ev.title,
+			description: ev.description,
+			type: eventType(ev),
+			sourceDate: ev.date
+		};
+	}
+
+	function eventsOfTypeOnDate(iso, type) {
 		var out = [];
 		var i;
+		var targetMd = isoToMD(iso);
+		var recurring = isRecurringType(type);
+
 		for (i = 0; i < flatEvents.length; i++) {
 			var ev = flatEvents[i];
-			if (ev && ev.date === iso && hasVisibleContent(ev)) {
+			if (!ev || !hasVisibleContent(ev) || eventType(ev) !== type) {
+				continue;
+			}
+			if (recurring) {
+				if (ev.date && isoToMD(ev.date) === targetMd) {
+					out.push(projectEventToIso(ev, iso));
+				}
+			} else if (ev.date === iso) {
 				out.push(ev);
 			}
 		}
@@ -170,23 +169,103 @@
 		return out;
 	}
 
-	function appendMarkDots(btn, hasHoliday, hasMerop) {
-		if (!hasHoliday && !hasMerop) {
+	function buildFixedHolidays(fromYear, toYear) {
+		var items = [];
+		var y;
+		var md;
+		for (y = fromYear; y <= toYear; y++) {
+			for (md in STATE_TITLE_BY_MD) {
+				if (!Object.prototype.hasOwnProperty.call(STATE_TITLE_BY_MD, md)) {
+					continue;
+				}
+				if (!mdExistsInYear(y, md)) {
+					continue;
+				}
+				items.push({
+					date: y + '-' + md,
+					title: STATE_TITLE_BY_MD[md]
+				});
+			}
+		}
+		return items;
+	}
+
+	function isStateHolidayIso(iso) {
+		var md = isoToMD(iso);
+		if (FIXED_STATE_MD[md]) {
+			return true;
+		}
+		return eventsOfTypeOnDate(iso, 'holiday').length > 0;
+	}
+
+	function stateHolidayTitlesForDate(iso) {
+		var titles = [];
+		var seen = {};
+		var md = isoToMD(iso);
+		var t;
+
+		if (FIXED_STATE_MD[md] && STATE_TITLE_BY_MD[md]) {
+			titles.push(STATE_TITLE_BY_MD[md]);
+			seen[STATE_TITLE_BY_MD[md]] = true;
+		}
+
+		var adminHolidays = eventsOfTypeOnDate(iso, 'holiday');
+		var i;
+		for (i = 0; i < adminHolidays.length; i++) {
+			t = adminHolidays[i].title || '';
+			if (t && !seen[t]) {
+				titles.push(t);
+				seen[t] = true;
+			}
+		}
+		return titles;
+	}
+
+	function occurrencesFromMd(md, fromDate, yearsAhead) {
+		var out = [];
+		if (!md || md.length < 5) {
+			return out;
+		}
+		var startY = fromDate.getFullYear();
+		var endY = startY + (yearsAhead || RECUR_YEARS_AHEAD);
+		var y;
+		for (y = startY; y <= endY; y++) {
+			if (!mdExistsInYear(y, md)) {
+				continue;
+			}
+			var iso = y + '-' + md;
+			var d = parseISODate(iso);
+			d.setHours(0, 0, 0, 0);
+			if (d >= fromDate) {
+				out.push(iso);
+			}
+		}
+		return out;
+	}
+
+	function appendMarkDots(btn, marks) {
+		if (!marks.holiday && !marks.merop && !marks.foundation) {
 			return;
 		}
 		var wrap = document.createElement('span');
 		wrap.className = 'calendar-day__marks';
-		if (hasHoliday) {
+		if (marks.holiday) {
 			var dh = document.createElement('span');
 			dh.className = 'calendar-day__dot calendar-day__dot--holiday';
 			dh.setAttribute('aria-hidden', 'true');
 			wrap.appendChild(dh);
 		}
-		if (hasMerop) {
+		if (marks.merop) {
 			var dm = document.createElement('span');
 			dm.className = 'calendar-day__dot calendar-day__dot--merop';
 			dm.setAttribute('aria-hidden', 'true');
 			wrap.appendChild(dm);
+		}
+		if (marks.foundation) {
+			var df = document.createElement('span');
+			df.className = 'calendar-day__dot calendar-day__dot--foundation';
+			df.setAttribute('aria-hidden', 'true');
+			wrap.appendChild(df);
 		}
 		btn.appendChild(wrap);
 	}
@@ -250,8 +329,11 @@
 		span.textContent = String(num);
 		btn.appendChild(span);
 
-		var hasHoliday = isStateHolidayIso(iso);
-		var hasMerop = eventsOnDate(iso).length > 0;
+		var marks = {
+			holiday: isStateHolidayIso(iso),
+			merop: eventsOfTypeOnDate(iso, 'merop').length > 0,
+			foundation: eventsOfTypeOnDate(iso, 'foundation').length > 0
+		};
 
 		if (isCurrentMonth && m === 5 && num === 10 && isoToMD(iso) === '05-10') {
 			var flagEl = document.createElement('span');
@@ -261,7 +343,7 @@
 			btn.appendChild(flagEl);
 		}
 
-		appendMarkDots(btn, hasHoliday, hasMerop);
+		appendMarkDots(btn, marks);
 
 		if (!isCurrentMonth) {
 			btn.classList.add('calendar-day--outside');
@@ -290,36 +372,11 @@
 		elModalBody.appendChild(sec);
 	}
 
-	function renderModalBody(iso) {
-		if (!elModalBody) {
-			return;
-		}
-		elModalBody.innerHTML = '';
-
-		var holidayTitles = stateHolidayTitlesForDate(iso);
-		var merop = eventsOnDate(iso);
-
-		var holWrap = document.createElement('div');
-		holWrap.className = 'calendar-modal__section-body';
-		if (holidayTitles.length) {
-			holidayTitles.forEach(function (title) {
-				var p = document.createElement('p');
-				p.className = 'calendar-modal__holiday-line';
-				p.textContent = title;
-				holWrap.appendChild(p);
-			});
-		} else {
-			var pe = document.createElement('p');
-			pe.className = 'calendar-modal__view-empty';
-			pe.textContent = strings.noHolidayDay || '';
-			holWrap.appendChild(pe);
-		}
-		addModalSection(strings.sectionState || 'Государственные праздники', holWrap);
-
-		var merWrap = document.createElement('div');
-		merWrap.className = 'calendar-modal__section-body';
-		if (merop.length) {
-			merop.forEach(function (ev) {
+	function renderEventArticles(list, emptyText) {
+		var wrap = document.createElement('div');
+		wrap.className = 'calendar-modal__section-body';
+		if (list.length) {
+			list.forEach(function (ev) {
 				var art = document.createElement('article');
 				art.className = 'calendar-modal__view-item';
 				var h = document.createElement('h4');
@@ -332,15 +389,62 @@
 					desc.textContent = ev.description;
 					art.appendChild(desc);
 				}
-				merWrap.appendChild(art);
+				wrap.appendChild(art);
 			});
 		} else {
 			var pm = document.createElement('p');
 			pm.className = 'calendar-modal__view-empty';
-			pm.textContent = strings.noMeropDay || '';
-			merWrap.appendChild(pm);
+			pm.textContent = emptyText || '';
+			wrap.appendChild(pm);
 		}
-		addModalSection(strings.sectionMerop || 'Мероприятия', merWrap);
+		return wrap;
+	}
+
+	function renderModalBody(iso) {
+		if (!elModalBody) {
+			return;
+		}
+		elModalBody.innerHTML = '';
+
+		var holidayTitles = stateHolidayTitlesForDate(iso);
+		var merop = eventsOfTypeOnDate(iso, 'merop');
+		var foundation = eventsOfTypeOnDate(iso, 'foundation');
+
+		var holWrap = document.createElement('div');
+		holWrap.className = 'calendar-modal__section-body';
+		if (holidayTitles.length) {
+			holidayTitles.forEach(function (title) {
+				var p = document.createElement('p');
+				p.className = 'calendar-modal__holiday-line';
+				p.textContent = title;
+				holWrap.appendChild(p);
+			});
+			var adminHolidays = eventsOfTypeOnDate(iso, 'holiday');
+			adminHolidays.forEach(function (ev) {
+				if (ev.description) {
+					var desc = document.createElement('p');
+					desc.className = 'calendar-modal__view-item-desc';
+					desc.textContent = ev.description;
+					holWrap.appendChild(desc);
+				}
+			});
+		} else {
+			var pe = document.createElement('p');
+			pe.className = 'calendar-modal__view-empty';
+			pe.textContent = strings.noHolidayDay || '';
+			holWrap.appendChild(pe);
+		}
+		addModalSection(strings.sectionState || 'Государственные праздники', holWrap);
+
+		addModalSection(
+			strings.sectionMerop || 'Мероприятия',
+			renderEventArticles(merop, strings.noMeropDay || '')
+		);
+
+		addModalSection(
+			strings.sectionFoundation || 'День основания предприятия',
+			renderEventArticles(foundation, strings.noFoundationDay || '')
+		);
 	}
 
 	function openModal(iso) {
@@ -424,6 +528,47 @@
 		return elSort && elSort.value ? elSort.value : 'date-asc';
 	}
 
+	function collectAdminHolidayItems(q, fromDate) {
+		var items = [];
+		var seen = {};
+		var n;
+		for (n = 0; n < flatEvents.length; n++) {
+			var ev = flatEvents[n];
+			if (!hasVisibleContent(ev) || !ev.date || eventType(ev) !== 'holiday') {
+				continue;
+			}
+			if (!meropMatchesSearch(ev, q)) {
+				continue;
+			}
+			var md = isoToMD(ev.date);
+			var occ = occurrencesFromMd(md, fromDate, RECUR_YEARS_AHEAD);
+			var oi;
+			for (oi = 0; oi < occ.length; oi++) {
+				var key = occ[oi] + '|' + (ev.title || '');
+				if (seen[key]) {
+					continue;
+				}
+				seen[key] = true;
+				items.push({ date: occ[oi], title: ev.title || '—' });
+			}
+		}
+		return items;
+	}
+
+	function sortByMode(items) {
+		var sort = sortMode();
+		items.sort(function (a, b) {
+			if (sort === 'date-desc') {
+				return b.date.localeCompare(a.date);
+			}
+			if (sort === 'title-asc') {
+				return (a.title || '').localeCompare(b.title || '', 'ru');
+			}
+			return a.date.localeCompare(b.date);
+		});
+		return items;
+	}
+
 	function renderHolidaysList() {
 		if (!elHolidayList) {
 			return;
@@ -432,23 +577,29 @@
 		var today = new Date();
 		today.setHours(0, 0, 0, 0);
 		var q = elSearch ? elSearch.value.trim().toLowerCase() : '';
+		var fromY = today.getFullYear();
+		var toY = fromY + RECUR_YEARS_AHEAD;
 
-		var items = HOLIDAYS.filter(function (h) {
+		var items = buildFixedHolidays(fromY, toY).filter(function (h) {
 			var hd = parseISODate(h.date);
 			hd.setHours(0, 0, 0, 0);
 			return hd >= today && holidayMatchesSearch(h, q);
 		});
 
-		var sort = sortMode();
-		items.sort(function (a, b) {
-			if (sort === 'date-desc') {
-				return b.date.localeCompare(a.date);
-			}
-			if (sort === 'title-asc') {
-				return a.title.localeCompare(b.title, 'ru');
-			}
-			return a.date.localeCompare(b.date);
+		var adminItems = collectAdminHolidayItems(q, today);
+		var seen = {};
+		items.forEach(function (h) {
+			seen[h.date + '|' + h.title] = true;
 		});
+		adminItems.forEach(function (h) {
+			var key = h.date + '|' + h.title;
+			if (!seen[key]) {
+				items.push(h);
+				seen[key] = true;
+			}
+		});
+
+		sortByMode(items);
 
 		elHolidayList.innerHTML = '';
 		items.slice(0, 16).forEach(function (h) {
@@ -481,31 +632,41 @@
 		}
 	}
 
-	function renderMeropList() {
-		if (!elMeropList) {
+	function renderTypedEventList(elList, type, markClass, rowClass, emptyKey, emptyFallback) {
+		if (!elList) {
 			return;
 		}
 
 		var today = new Date();
 		today.setHours(0, 0, 0, 0);
 		var q = elSearch ? elSearch.value.trim().toLowerCase() : '';
+		var recurring = isRecurringType(type);
 
 		var items = [];
 		var n;
 		for (n = 0; n < flatEvents.length; n++) {
 			var ev = flatEvents[n];
-			if (!hasVisibleContent(ev) || !ev.date) {
-				continue;
-			}
-			var hd = parseISODate(ev.date);
-			hd.setHours(0, 0, 0, 0);
-			if (hd < today) {
+			if (!hasVisibleContent(ev) || !ev.date || eventType(ev) !== type) {
 				continue;
 			}
 			if (!meropMatchesSearch(ev, q)) {
 				continue;
 			}
-			items.push(ev);
+
+			if (recurring) {
+				var occ = occurrencesFromMd(isoToMD(ev.date), today, RECUR_YEARS_AHEAD);
+				var oi;
+				for (oi = 0; oi < occ.length; oi++) {
+					items.push(projectEventToIso(ev, occ[oi]));
+				}
+			} else {
+				var hd = parseISODate(ev.date);
+				hd.setHours(0, 0, 0, 0);
+				if (hd < today) {
+					continue;
+				}
+				items.push(ev);
+			}
 		}
 
 		var sort = sortMode();
@@ -529,15 +690,15 @@
 			return (Number(a.id) || 0) - (Number(b.id) || 0);
 		});
 
-		elMeropList.innerHTML = '';
+		elList.innerHTML = '';
 		items.slice(0, 16).forEach(function (ev) {
 			var li = document.createElement('li');
-			li.className = 'calendar-holidays__row calendar-holidays__row--merop';
+			li.className = 'calendar-holidays__row ' + rowClass;
 			var hd = parseISODate(ev.date);
 			var label = pad(hd.getDate()) + ' ' + MONTH_NAMES[hd.getMonth()].toLowerCase();
 
 			var dot = document.createElement('span');
-			dot.className = 'calendar-holidays__mark calendar-holidays__mark--merop';
+			dot.className = 'calendar-holidays__mark ' + markClass;
 			dot.setAttribute('aria-hidden', 'true');
 
 			var text = document.createElement('div');
@@ -554,20 +715,43 @@
 
 			li.appendChild(dot);
 			li.appendChild(text);
-			elMeropList.appendChild(li);
+			elList.appendChild(li);
 		});
 
 		if (items.length === 0) {
 			var empty = document.createElement('li');
 			empty.className = 'calendar-holidays__empty';
-			empty.textContent = strings.emptyMerop || 'Нет записей по запросу.';
-			elMeropList.appendChild(empty);
+			empty.textContent = strings[emptyKey] || emptyFallback;
+			elList.appendChild(empty);
 		}
+	}
+
+	function renderMeropList() {
+		renderTypedEventList(
+			elMeropList,
+			'merop',
+			'calendar-holidays__mark--merop',
+			'calendar-holidays__row--merop',
+			'emptyMerop',
+			'Нет записей по запросу.'
+		);
+	}
+
+	function renderFoundationList() {
+		renderTypedEventList(
+			elFoundationList,
+			'foundation',
+			'calendar-holidays__mark--foundation',
+			'calendar-holidays__row--foundation',
+			'emptyFoundation',
+			'Нет записей по запросу.'
+		);
 	}
 
 	function renderSideLists() {
 		renderHolidaysList();
 		renderMeropList();
+		renderFoundationList();
 	}
 
 	if (elSearch) {

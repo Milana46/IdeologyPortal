@@ -149,6 +149,8 @@ $popular_sub_fallback = __( 'Краткая информация', 'portal-theme
 						</button>
 					</section>
 
+					
+
 					<section class="analytics-widget analytics-widget--ask">
 						<h3 class="analytics-widget__title"><?php esc_html_e( 'Задайте дополнительные вопросы', 'portal-theme' ); ?></h3>
 						<?php

@@ -172,14 +172,17 @@ add_action(
                     array(
                         'events'  => $cal_items,
                         'strings' => array(
-                            'close'         => __( 'Закрыть', 'portal-theme' ),
-                            'modalTitle'    => __( 'События на дату', 'portal-theme' ),
-                            'sectionState'  => __( 'Государственные праздники', 'portal-theme' ),
-                            'sectionMerop'  => __( 'Мероприятия', 'portal-theme' ),
-                            'noHolidayDay'  => __( 'На эту дату нет государственных праздников.', 'portal-theme' ),
-                            'noMeropDay'    => __( 'На эту дату нет мероприятий.', 'portal-theme' ),
-                            'emptyHolidays' => __( 'Нет ближайших праздников по запросу.', 'portal-theme' ),
-                            'emptyMerop'    => __( 'Нет ближайших мероприятий по запросу.', 'portal-theme' ),
+                            'close'            => __( 'Закрыть', 'portal-theme' ),
+                            'modalTitle'       => __( 'События на дату', 'portal-theme' ),
+                            'sectionState'     => __( 'Государственные праздники', 'portal-theme' ),
+                            'sectionMerop'     => __( 'Мероприятия', 'portal-theme' ),
+                            'sectionFoundation'=> __( 'День основания предприятия', 'portal-theme' ),
+                            'noHolidayDay'     => __( 'На эту дату нет государственных праздников.', 'portal-theme' ),
+                            'noMeropDay'       => __( 'На эту дату нет мероприятий.', 'portal-theme' ),
+                            'noFoundationDay'  => __( 'На эту дату нет дней основания предприятия.', 'portal-theme' ),
+                            'emptyHolidays'    => __( 'Нет ближайших праздников по запросу.', 'portal-theme' ),
+                            'emptyMerop'       => __( 'Нет ближайших мероприятий по запросу.', 'portal-theme' ),
+                            'emptyFoundation'  => __( 'Нет ближайших дней основания по запросу.', 'portal-theme' ),
                         ),
                     )
                 );
@@ -528,7 +531,7 @@ function portal_theme_bp_render_material_card( array $args ) {
 		</div>
 		<div class="bp-card__action">
 			<?php if ( $doc_plain ) : ?>
-				<button type="button" class="bp-btn bp-btn--green bp-open-doc"<?php echo $open_attrs; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>>
+				<button type="button" class="bp-btn bp-btn--green bp-open-doc"<?php echo $open_attrs;  ?>
 					<?php esc_html_e( 'Открыть', 'portal-theme' ); ?>
 				</button>
 				<a href="<?php echo esc_url( $doc_plain ); ?>" class="bp-btn bp-btn--outline bp-download-direct" download="<?php echo esc_attr( $file_label ); ?>"><?php esc_html_e( 'Скачать', 'portal-theme' ); ?></a>

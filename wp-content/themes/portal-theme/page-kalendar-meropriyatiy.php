@@ -85,6 +85,11 @@ $theme_img = get_template_directory_uri() . '/assets/img';
                                 <span class="calendar-legend__dot calendar-legend__dot--merop" aria-hidden="true"></span>
                                 <?php esc_html_e( 'Мероприятия', 'portal-theme' ); ?>
                             </span>
+                            <span class="calendar-legend__sep" aria-hidden="true">·</span>
+                            <span class="calendar-legend__item">
+                                <span class="calendar-legend__dot calendar-legend__dot--foundation" aria-hidden="true"></span>
+                                <?php esc_html_e( 'День основания предприятия', 'portal-theme' ); ?>
+                            </span>
                         </p>
                         <div class="calendar-weekdays" aria-hidden="true">
                             <span><?php esc_html_e( 'Пн', 'portal-theme' ); ?></span>
@@ -97,7 +102,7 @@ $theme_img = get_template_directory_uri() . '/assets/img';
                         </div>
                         <div class="calendar-grid" id="calendar-grid" role="grid" aria-labelledby="calendar-month-heading"></div>
                         <p class="calendar-card__hint">
-                            <?php esc_html_e( 'Нажмите на число, чтобы открыть подробности: государственные праздники и мероприятия. Мероприятия добавляются в консоли: раздел «Календарь мероприятий».', 'portal-theme' ); ?>
+                            <?php esc_html_e( 'Нажмите на число, чтобы открыть подробности. События добавляются в консоли: раздел «Календарь мероприятий» — выберите тип (праздник, мероприятие или день основания).', 'portal-theme' ); ?>
                         </p>
                     </section>
 
@@ -109,6 +114,11 @@ $theme_img = get_template_directory_uri() . '/assets/img';
                     <section class="calendar-holidays calendar-holidays--merop" aria-labelledby="calendar-merop-title">
                         <h2 class="calendar-holidays__title" id="calendar-merop-title"><?php esc_html_e( 'Мероприятия', 'portal-theme' ); ?></h2>
                         <ul class="calendar-holidays__list" id="calendar-merop-list"></ul>
+                    </section>
+
+                    <section class="calendar-holidays calendar-holidays--foundation" aria-labelledby="calendar-foundation-title">
+                        <h2 class="calendar-holidays__title" id="calendar-foundation-title"><?php esc_html_e( 'День основания предприятия', 'portal-theme' ); ?></h2>
+                        <ul class="calendar-holidays__list" id="calendar-foundation-list"></ul>
                     </section>
                 </div>
 
