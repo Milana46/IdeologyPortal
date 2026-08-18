@@ -744,6 +744,25 @@ button.bp-featured__thumb.bp-open-doc {
     background: #fff;
 }
 
+.bp-doc-modal__frame[hidden] {
+    display: none !important;
+    min-height: 0;
+    height: 0;
+}
+
+.bp-doc-modal__media {
+    display: block;
+    width: 100%;
+    max-height: min(65vh, 560px);
+    height: auto;
+    object-fit: contain;
+    background: #0f1729;
+}
+
+.bp-doc-modal__media[hidden] {
+    display: none !important;
+}
+
 .bp-doc-modal__fallback {
     padding: 20px 18px;
     font-size: 14px;

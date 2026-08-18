@@ -1,9 +1,5 @@
 <?php
-/**
- * Template Name: Библиотека практик
- *
- * Материалы создаются в админке: тип записей «Библиотека практик».
- */
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -147,7 +143,7 @@ $panel_id = 'bp-panel-main';
 										$bp_q->the_post();
 										$html = portal_theme_bp_render_material_card_from_post( get_post(), $theme_img, $is_local );
 										if ( $html !== '' ) {
-											echo $html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+											echo $html;
 											$bp_has_cards = true;
 										}
 									}
@@ -263,7 +259,7 @@ $panel_id = 'bp-panel-main';
 
 			<div class="bp-doc-modal__viewer">
 				<iframe id="bp-doc-frame" class="bp-doc-modal__frame" title="" src="about:blank" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
-				<img id="bp-media-img" class="bp-doc-modal__media bp-doc-modal__media--img" alt="" width="0" height="0" hidden decoding="async">
+				<img id="bp-media-img" class="bp-doc-modal__media bp-doc-modal__media--img" alt="" hidden decoding="async">
 				<video id="bp-media-vid" class="bp-doc-modal__media bp-doc-modal__media--vid" controls playsinline preload="metadata" hidden></video>
 				<div id="bp-doc-fallback" class="bp-doc-modal__fallback" hidden>
 					<p id="bp-doc-fallback-local" class="<?php echo $is_local ? '' : 'bp-hidden'; ?>">
