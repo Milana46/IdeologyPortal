@@ -160,6 +160,9 @@
 	}
 
 	document.addEventListener('click', function (e) {
+		if (e.target.closest('.bp-download-direct')) {
+			return;
+		}
 		var opener = e.target.closest('.bp-open-doc');
 		if (opener) {
 			e.preventDefault();

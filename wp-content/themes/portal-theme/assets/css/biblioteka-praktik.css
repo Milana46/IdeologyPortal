@@ -499,6 +499,15 @@ button.bp-featured__thumb.bp-open-doc {
     min-width: 110px;
 }
 
+.bp-card__action-btn {
+    display: flex;
+}
+
+.bp-card__action-btn .bp-btn {
+    width: 100%;
+    box-sizing: border-box;
+}
+
 .bp-aside {
     display: flex;
     flex-direction: column;

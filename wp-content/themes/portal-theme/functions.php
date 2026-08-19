@@ -503,8 +503,8 @@ function portal_theme_bp_render_material_card( array $args ) {
 	if ( $doc_plain ) {
 		$open_attrs = sprintf(
 			' data-doc-url="%s" data-pdf-url="%s" data-doc-title="%s" data-doc-name="%s" data-media-viewer="%s"',
-			esc_attr( $doc_plain ),
-			esc_attr( $pdf_plain ),
+			esc_attr( esc_url( $doc_plain ) ),
+			esc_attr( $pdf_plain ? esc_url( $pdf_plain ) : '' ),
 			esc_attr( $title_t ),
 			esc_attr( $file_label ),
 			esc_attr( $viewer )
@@ -531,10 +531,22 @@ function portal_theme_bp_render_material_card( array $args ) {
 		</div>
 		<div class="bp-card__action">
 			<?php if ( $doc_plain ) : ?>
-				<button type="button" class="bp-btn bp-btn--green bp-open-doc"<?php echo $open_attrs;  ?>
-					<?php esc_html_e( 'Открыть', 'portal-theme' ); ?>
-				</button>
-				<a href="<?php echo esc_url( $doc_plain ); ?>" class="bp-btn bp-btn--outline bp-download-direct" download="<?php echo esc_attr( $file_label ); ?>"><?php esc_html_e( 'Скачать', 'portal-theme' ); ?></a>
+				<div class="bp-card__action-btn"><?php
+					printf(
+						'<a href="%1$s" class="bp-btn bp-btn--green bp-open-doc" role="button"%2$s>%3$s</a>',
+						esc_url( $doc_plain ),
+						$open_attrs,
+						esc_html__( 'Открыть', 'portal-theme' )
+					);
+				?></div>
+				<div class="bp-card__action-btn"><?php
+					printf(
+						'<a href="%1$s" class="bp-btn bp-btn--outline bp-download-direct" download="%2$s">%3$s</a>',
+						esc_url( $doc_plain ),
+						esc_attr( $file_label ),
+						esc_html__( 'Скачать', 'portal-theme' )
+					);
+				?></div>
 			<?php else : ?>
 				<span class="bp-btn bp-btn--green bp-btn--disabled"><?php esc_html_e( 'Открыть', 'portal-theme' ); ?></span>
 			<?php endif; ?>
