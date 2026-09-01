@@ -1,9 +1,5 @@
 <?php
-/**
- * Template Name: Календарь ключевых событий
- *
- * Страница с ярлыком kalendar-klyuchevyy-sobytiy.
- */
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -162,26 +158,6 @@ $month_names = array(
 									</div>
 								</li>
 							<?php endforeach; ?>
-						</ul>
-					</section>
-
-					<section class="kse-widget">
-						<h3 class="kse-widget__title"><?php esc_html_e( 'Ссылки по темам', 'portal-theme' ); ?></h3>
-						<ul class="kse-widget__list kse-widget__list--links">
-							<?php for ( $l = 0; $l < 3; $l++ ) : ?>
-								<li>
-									<a href="#" class="kse-link-row">
-										<span class="kse-link-row__icon" aria-hidden="true">
-											<img src="<?php echo esc_url( $theme_img . '/link.png' ); ?>" alt="">
-										</span>
-										<span class="kse-link-row__text">
-											<strong><?php esc_html_e( 'Название', 'portal-theme' ); ?></strong>
-											<span class="kse-link-row__sub"><?php esc_html_e( 'Краткая информация', 'portal-theme' ); ?></span>
-										</span>
-										<span class="kse-link-row__chev" aria-hidden="true">›</span>
-									</a>
-								</li>
-							<?php endfor; ?>
 						</ul>
 					</section>
 
