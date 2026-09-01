@@ -20,6 +20,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
     <div class="portal-header__right">
         <form
+            id="portal-global-search"
             class="portal-search"
             method="get"
             action="<?php echo esc_url( home_url( '/' ) ); ?>"
@@ -38,8 +39,8 @@ if ( ! defined( 'ABSPATH' ) ) {
             </button>
         </form>
 
-        <a href="#" class="portal-btn portal-btn--blue">
-            Перейти к материалам
-        </a>
+        <button type="submit" form="portal-global-search" class="portal-btn portal-btn--blue">
+            <?php esc_html_e( 'Перейти к материалам', 'portal-theme' ); ?>
+        </button>
     </div>
 </header>

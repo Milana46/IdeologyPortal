@@ -187,13 +187,17 @@ img {
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    border: none;
     border-radius: 10px;
     font-size: 13px;
     font-weight: 600;
+    font-family: inherit;
     line-height: 1;
     color: #ffffff;
     white-space: nowrap;
     margin-top:-6px;
+    cursor: pointer;
+    text-decoration: none;
 }
 
 .portal-btn--blue {

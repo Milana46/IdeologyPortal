@@ -15,10 +15,20 @@ if ( ! defined( 'ABSPATH' ) ) {
 define( 'PORTAL_CORE_PATH', plugin_dir_path( __FILE__ ) );
 define( 'PORTAL_CORE_URL', plugin_dir_url( __FILE__ ) );
 
+add_action( 'init', 'portal_core_register_home_file_cpt' );
+
+$portal_core_union_inc = PORTAL_CORE_PATH . 'inc/sostav-obedineniya.php';
+if ( file_exists( $portal_core_union_inc ) ) {
+	require_once $portal_core_union_inc;
+}
+
 register_activation_hook(
     __FILE__,
     function () {
         portal_core_register_home_file_cpt();
+        if ( function_exists( 'portal_core_register_union_org_cpt' ) ) {
+            portal_core_register_union_org_cpt();
+        }
         flush_rewrite_rules();
     }
 );
@@ -30,10 +40,8 @@ register_deactivation_hook(
     }
 );
 
-add_action( 'init', 'portal_core_register_home_file_cpt' );
-
 /**
- * Файлы для блоков «Актуальное» и «Необходимые документы» на главной.
+ * Файлы для блоков «Дополнительные ресурсы» и «Необходимые документы» на главной.
  */
 function portal_core_register_home_file_cpt() {
     register_post_type(
@@ -52,7 +60,7 @@ function portal_core_register_home_file_cpt() {
             'menu_icon'          => 'dashicons-media-document',
             'capability_type'    => 'post',
             'map_meta_cap'       => true,
-            'supports'           => array( 'title', 'editor', 'page-attributes' ),
+            'supports'           => array( 'title', 'editor', 'thumbnail', 'page-attributes' ),
             'menu_position'      => 57,
         )
     );
@@ -94,7 +102,7 @@ function portal_core_home_file_metabox_render( WP_Post $post ) {
     <p>
         <label for="portal_widget_block"><strong><?php esc_html_e( 'Блок на главной', 'portal-core' ); ?></strong></label><br>
         <select name="portal_widget_block" id="portal_widget_block">
-            <option value="actual" <?php selected( $block, 'actual' ); ?>><?php esc_html_e( 'Актуальное (правый столбец)', 'portal-core' ); ?></option>
+            <option value="actual" <?php selected( $block, 'actual' ); ?>><?php esc_html_e( 'Дополнительные ресурсы (правый столбец)', 'portal-core' ); ?></option>
             <option value="documents" <?php selected( $block, 'documents' ); ?>><?php esc_html_e( 'Необходимые документы', 'portal-core' ); ?></option>
         </select>
     </p>
@@ -109,11 +117,11 @@ function portal_core_home_file_metabox_render( WP_Post $post ) {
         <span id="portal_home_file_name"><?php echo esc_html( $file_name ); ?></span>
     </p>
     <p>
-        <label for="portal_home_file_url"><strong><?php esc_html_e( 'Или внешняя ссылка на файл', 'portal-core' ); ?></strong></label><br>
+        <label for="portal_home_file_url"><strong><?php esc_html_e( 'Адрес сайта или ссылка на файл', 'portal-core' ); ?></strong></label><br>
         <input type="url" class="large-text" name="portal_home_file_url" id="portal_home_file_url"
             value="<?php echo esc_attr( $file_url ); ?>" placeholder="https://">
     </p>
-    <p class="description"><?php esc_html_e( 'Если указаны и медиафайл, и ссылка, для кнопки «Скачать» используется вложение.', 'portal-core' ); ?></p>
+    <p class="description"><?php esc_html_e( 'Для «Дополнительных ресурсов»: заголовок записи (например, БелТА) станет ссылкой на этот адрес, без кнопки «Скачать». Значок — «Изображение записи» справа или иконка сайта. Для документов по-прежнему можно прикрепить файл: тогда показывается «Скачать».', 'portal-core' ); ?></p>
     <?php
 }
 
@@ -250,13 +258,13 @@ function portal_core_render_home_file_list( $block ) {
             echo esc_html(
                 'documents' === $block
                     ? __( 'Добавьте записи в «Файлы главной» с блоком «Необходимые документы».', 'portal-core' )
-                    : __( 'Добавьте записи в «Файлы главной» с блоком «Актуальное».', 'portal-core' )
+                    : __( 'Добавьте записи в «Файлы главной» с блоком «Дополнительные ресурсы».', 'portal-core' )
             );
         } else {
             echo esc_html(
                 'documents' === $block
                     ? __( 'Документы пока не добавлены.', 'portal-core' )
-                    : __( 'Материалы скоро появятся.', 'portal-core' )
+                    : __( 'Ресурсы скоро появятся.', 'portal-core' )
             );
         }
 
@@ -268,20 +276,79 @@ function portal_core_render_home_file_list( $block ) {
 
     while ( $q->have_posts() ) {
         $q->the_post();
-        portal_core_render_home_file_row( (int) get_the_ID() );
+        portal_core_render_home_file_row( (int) get_the_ID(), $block );
     }
 
     echo '</div>';
     wp_reset_postdata();
 }
 
-/**
- * @param int $post_id ID portal_home_file.
- */
-function portal_core_render_home_file_row( $post_id ) {
-    $url = portal_core_get_home_file_download_url( $post_id );
+function portal_core_get_home_resource_url( $post_id ) {
+    $post_id = (int) $post_id;
+    $ext     = get_post_meta( $post_id, '_portal_home_file_url', true );
+    if ( is_string( $ext ) && $ext !== '' ) {
+        return $ext;
+    }
+    return portal_core_get_home_file_download_url( $post_id );
+}
+
+function portal_core_get_home_resource_icon_url( $post_id, $link_url ) {
+    $post_id = (int) $post_id;
+    if ( $post_id > 0 && has_post_thumbnail( $post_id ) ) {
+        $thumb = get_the_post_thumbnail_url( $post_id, 'thumbnail' );
+        if ( is_string( $thumb ) && $thumb !== '' ) {
+            return $thumb;
+        }
+    }
+
+    $fid = (int) get_post_meta( $post_id, '_portal_home_file_id', true );
+    if ( $fid > 0 && wp_attachment_is_image( $fid ) ) {
+        $img = wp_get_attachment_image_url( $fid, 'thumbnail' );
+        if ( is_string( $img ) && $img !== '' ) {
+            return $img;
+        }
+    }
+
+    $host = wp_parse_url( $link_url, PHP_URL_HOST );
+    if ( is_string( $host ) && $host !== '' ) {
+        return 'https://www.google.com/s2/favicons?domain=' . rawurlencode( $host ) . '&sz=64';
+    }
+
+    return '';
+}
+
+function portal_core_render_home_file_row( $post_id, $block = 'documents' ) {
+    $is_resource = ( 'actual' === $block );
+    $url         = $is_resource
+        ? portal_core_get_home_resource_url( $post_id )
+        : portal_core_get_home_file_download_url( $post_id );
 
     if ( ! $url ) {
+        return;
+    }
+
+    $title = get_the_title( $post_id );
+    if ( $is_resource ) {
+        $icon = portal_core_get_home_resource_icon_url( $post_id, $url );
+        ?>
+        <div class="documents-list__item documents-list__item--resource">
+            <div class="documents-list__icon documents-list__icon--site" aria-hidden="true">
+                <?php if ( $icon ) : ?>
+                    <img src="<?php echo esc_url( $icon ); ?>" alt="" width="28" height="28">
+                <?php endif; ?>
+            </div>
+            <div class="documents-list__content">
+                <div class="documents-list__title">
+                    <a href="<?php echo esc_url( $url ); ?>" target="_blank" rel="noopener noreferrer">
+                        <?php echo esc_html( $title ); ?>
+                    </a>
+                </div>
+                <div class="documents-list__text">
+                    <?php echo esc_html( $url ); ?>
+                </div>
+            </div>
+        </div>
+        <?php
         return;
     }
 
@@ -292,7 +359,7 @@ function portal_core_render_home_file_row( $post_id ) {
         <div class="documents-list__icon" aria-hidden="true"></div>
         <div class="documents-list__content">
             <div class="documents-list__title">
-                <?php echo esc_html( get_the_title( $post_id ) ); ?>
+                <?php echo esc_html( $title ); ?>
             </div>
             <?php if ( $summary ) : ?>
                 <div class="documents-list__text">
@@ -656,10 +723,10 @@ function portal_core_render_settings_page() {
     <div class="wrap">
         <h1><?php echo esc_html( get_admin_page_title() ); ?></h1>
         <p class="description">
-            <?php esc_html_e( 'Ссылки на созвоны и встраивание таблиц — без правки кода. Для Google Таблиц: «Файл → Опубликовать в интернете» или вставьте готовую ссылку вида docs.google.com/…', 'portal-core' ); ?>
+            <?php esc_html_e( 'На этой странице: кнопки созвонов, таблица Google и тексты вкладок «О платформе», «Преимущества», «Состав объединения».', 'portal-core' ); ?>
         </p>
         <p class="description">
-            <?php esc_html_e( 'Файлы для блоков «Актуальное» и «Необходимые документы» добавляйте в меню «Файлы главной» (вложение или внешняя ссылка). Порядок: поле «Порядок» в записи.', 'portal-core' ); ?>
+            <?php esc_html_e( 'Ссылки для «Дополнительных ресурсов» и файлы для «Необходимые документы» добавляйте в меню «Файлы главной». Порядок: поле «Порядок» в записи.', 'portal-core' ); ?>
         </p>
         <form action="options.php" method="post">
             <?php
@@ -712,6 +779,14 @@ function portal_core_render_settings_page() {
                         <input name="portal_sheets_block_title" id="portal_sheets_block_title" type="text" class="large-text" value="<?php echo esc_attr( $sheets_title ); ?>">
                     </td>
                 </tr>
+            </table>
+
+            <h2><?php esc_html_e( 'Тексты вкладок на главной', 'portal-core' ); ?></h2>
+            <p class="description">
+                <?php esc_html_e( 'Это содержимое вкладок «О платформе», «Преимущества платформы» и вводный текст «Состав объединения» на Главной. Организации (блоки со знаком «+») добавляйте в меню «Состав объединения».', 'portal-core' ); ?>
+            </p>
+
+            <table class="form-table" role="presentation">
                 <tr>
                     <th scope="row"><label for="portal_home_tab_about_html"><?php esc_html_e( 'Вкладка «О платформе»', 'portal-core' ); ?></label></th>
                     <td>
@@ -726,10 +801,10 @@ function portal_core_render_settings_page() {
                     </td>
                 </tr>
                 <tr>
-                    <th scope="row"><label for="portal_home_tab_sections_html"><?php esc_html_e( 'Вкладка «Основные разделы» (вводный текст)', 'portal-core' ); ?></label></th>
+                    <th scope="row"><label for="portal_home_tab_sections_html"><?php esc_html_e( 'Вкладка «Состав объединения» (вводный текст)', 'portal-core' ); ?></label></th>
                     <td>
                         <textarea name="portal_home_tab_sections_html" id="portal_home_tab_sections_html" class="large-text" rows="4"><?php echo esc_textarea( $tab_sec ); ?></textarea>
-                        <p class="description"><?php esc_html_e( 'Показывается над карточками разделов и блоком таблицы.', 'portal-core' ); ?></p>
+                        <p class="description"><?php esc_html_e( 'Показывается над списком организаций. Сами блоки заполняются в меню «Состав объединения».', 'portal-core' ); ?></p>
                     </td>
                 </tr>
             </table>

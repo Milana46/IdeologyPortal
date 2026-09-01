@@ -47,8 +47,12 @@ $tab_sec_html =
                     <?php
                     $call_url   = get_option( 'portal_calls_url', '' );
                     $call_label = get_option( 'portal_calls_label', __( 'Перейти к созвону', 'portal-theme' ) );
-                    $call2_url  = get_option( 'portal_calls_secondary_url', '' );
-                    $call2_lbl  = get_option( 'portal_calls_secondary_label', '' );
+                    $mediabank_url = function_exists( 'portal_theme_search_page_url_by_template' )
+                        ? portal_theme_search_page_url_by_template( 'page-mediabank.php', 'mediabank' )
+                        : '';
+                    if ( $mediabank_url === '' ) {
+                        $mediabank_url = home_url( '/mediabank/' );
+                    }
                     ?>
                     <?php if ( $call_url ) : ?>
                         <a href="<?php echo esc_url( $call_url ); ?>" class="portal-btn portal-btn--green" target="_blank" rel="noopener noreferrer">
@@ -56,19 +60,13 @@ $tab_sec_html =
                         </a>
                     <?php else : ?>
                         <a href="#" class="portal-btn portal-btn--green">
-                            О платформе
+                            <?php esc_html_e( 'О платформе', 'portal-theme' ); ?>
                         </a>
                     <?php endif; ?>
 
-                    <?php if ( $call2_url && $call2_lbl ) : ?>
-                        <a href="<?php echo esc_url( $call2_url ); ?>" class="portal-btn portal-btn--blue" target="_blank" rel="noopener noreferrer">
-                            <?php echo esc_html( $call2_lbl ); ?>
-                        </a>
-                    <?php else : ?>
-                        <a href="#" class="portal-btn portal-btn--blue">
-                            Открыть медиабанк
-                        </a>
-                    <?php endif; ?>
+                    <a href="<?php echo esc_url( $mediabank_url ); ?>" class="portal-btn portal-btn--blue">
+                        <?php esc_html_e( 'Открыть медиабанк', 'portal-theme' ); ?>
+                    </a>
                 </div>
             </div>
 
@@ -114,7 +112,7 @@ $tab_sec_html =
                 aria-selected="false"
                 aria-controls="portal-panel-sections"
             >
-                <?php esc_html_e( 'Основные разделы', 'portal-theme' ); ?>
+                <?php esc_html_e( 'Состав объединения', 'portal-theme' ); ?>
             </button>
         </nav>
 
@@ -130,7 +128,7 @@ $tab_sec_html =
                     >
                         <div class="portal-tab-panel__inner portal-prose">
                             <?php if ( $tab_about_html ) : ?>
-                                <?php echo $tab_about_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- sanitized in portal_core_get_tab_html ?>
+                                <?php echo $tab_about_html; ?>
                             <?php elseif ( current_user_can( 'manage_options' ) ) : ?>
                                 <p class="portal-widget__placeholder">
                                     <?php esc_html_e( 'Заполните текст вкладки «О платформе» в меню «Портал».', 'portal-theme' ); ?>
@@ -169,36 +167,24 @@ $tab_sec_html =
                         <div class="portal-tab-panel__inner">
                             <?php if ( $tab_sec_html ) : ?>
                                 <div class="portal-prose portal-prose--intro">
-                                    <?php echo $tab_sec_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+                                    <?php echo $tab_sec_html; ?>
                                 </div>
                             <?php elseif ( current_user_can( 'manage_options' ) ) : ?>
                                 <p class="portal-widget__placeholder">
-                                    <?php esc_html_e( 'По желанию добавьте вводный текст для вкладки «Основные разделы» в меню «Портал».', 'portal-theme' ); ?>
+                                    <?php esc_html_e( 'По желанию добавьте вводный текст для вкладки «Состав объединения» в меню «Портал».', 'portal-theme' ); ?>
                                 </p>
                             <?php endif; ?>
 
                             <section class="portal-section">
                                 <h2>
-                                    <?php esc_html_e( 'Основные разделы', 'portal-theme' ); ?>
+                                    <?php esc_html_e( 'Состав объединения', 'portal-theme' ); ?>
                                 </h2>
 
-                                <div class="portal-cards">
-                                    <article class="portal-card">
-                                        <?php esc_html_e( 'Библиотека практик', 'portal-theme' ); ?>
-                                    </article>
-
-                                    <article class="portal-card">
-                                        <?php esc_html_e( 'Медиабанк', 'portal-theme' ); ?>
-                                    </article>
-
-                                    <article class="portal-card">
-                                        <?php esc_html_e( 'Советник+', 'portal-theme' ); ?>
-                                    </article>
-
-                                    <article class="portal-card">
-                                        <?php esc_html_e( 'Оперативный штаб', 'portal-theme' ); ?>
-                                    </article>
-                                </div>
+                                <?php
+                                if ( function_exists( 'portal_core_render_union_accordion' ) ) {
+                                    portal_core_render_union_accordion();
+                                }
+                                ?>
                             </section>
 
                             <?php if ( $sheet_url ) : ?>
@@ -225,7 +211,7 @@ $tab_sec_html =
             <aside class="portal-rightbar">
                 <section class="portal-widget">
                     <h3>
-                        <?php esc_html_e( 'Актуальное', 'portal-theme' ); ?>
+                        <?php esc_html_e( 'Дополнительные ресурсы', 'portal-theme' ); ?>
                     </h3>
 
                     <div class="portal-widget__box portal-widget__box--actual">
