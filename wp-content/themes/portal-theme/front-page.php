@@ -112,7 +112,7 @@ $tab_sec_html =
                 aria-selected="false"
                 aria-controls="portal-panel-sections"
             >
-                <?php esc_html_e( 'Состав объединения', 'portal-theme' ); ?>
+                <?php esc_html_e( 'Идеологическая вертикаль', 'portal-theme' ); ?>
             </button>
         </nav>
 
@@ -147,7 +147,7 @@ $tab_sec_html =
                     >
                         <div class="portal-tab-panel__inner portal-prose">
                             <?php if ( $tab_adv_html ) : ?>
-                                <?php echo $tab_adv_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+                                <?php echo $tab_adv_html; ?>
                             <?php elseif ( current_user_can( 'manage_options' ) ) : ?>
                                 <p class="portal-widget__placeholder">
                                     <?php esc_html_e( 'Заполните текст вкладки «Преимущества платформы» в меню «Портал».', 'portal-theme' ); ?>
@@ -171,18 +171,18 @@ $tab_sec_html =
                                 </div>
                             <?php elseif ( current_user_can( 'manage_options' ) ) : ?>
                                 <p class="portal-widget__placeholder">
-                                    <?php esc_html_e( 'По желанию добавьте вводный текст для вкладки «Состав объединения» в меню «Портал».', 'portal-theme' ); ?>
+                                    <?php esc_html_e( 'По желанию добавьте вводный текст для вкладки «Идеологическая вертикаль» в меню «Портал».', 'portal-theme' ); ?>
                                 </p>
                             <?php endif; ?>
 
                             <section class="portal-section">
                                 <h2>
-                                    <?php esc_html_e( 'Состав объединения', 'portal-theme' ); ?>
+                                    <?php esc_html_e( 'Идеологическая вертикаль', 'portal-theme' ); ?>
                                 </h2>
 
                                 <?php
-                                if ( function_exists( 'portal_core_render_union_accordion' ) ) {
-                                    portal_core_render_union_accordion();
+                                if ( function_exists( 'portal_core_render_vertical_cards' ) ) {
+                                    portal_core_render_vertical_cards();
                                 }
                                 ?>
                             </section>

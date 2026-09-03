@@ -723,7 +723,7 @@ function portal_core_render_settings_page() {
     <div class="wrap">
         <h1><?php echo esc_html( get_admin_page_title() ); ?></h1>
         <p class="description">
-            <?php esc_html_e( 'На этой странице: кнопки созвонов, таблица Google и тексты вкладок «О платформе», «Преимущества», «Состав объединения».', 'portal-core' ); ?>
+            <?php esc_html_e( 'На этой странице: кнопки созвонов, таблица Google и тексты вкладок «О платформе», «Преимущества», «Идеологическая вертикаль».', 'portal-core' ); ?>
         </p>
         <p class="description">
             <?php esc_html_e( 'Ссылки для «Дополнительных ресурсов» и файлы для «Необходимые документы» добавляйте в меню «Файлы главной». Порядок: поле «Порядок» в записи.', 'portal-core' ); ?>
@@ -783,7 +783,7 @@ function portal_core_render_settings_page() {
 
             <h2><?php esc_html_e( 'Тексты вкладок на главной', 'portal-core' ); ?></h2>
             <p class="description">
-                <?php esc_html_e( 'Это содержимое вкладок «О платформе», «Преимущества платформы» и вводный текст «Состав объединения» на Главной. Организации (блоки со знаком «+») добавляйте в меню «Состав объединения».', 'portal-core' ); ?>
+                <?php esc_html_e( 'Это содержимое вкладок «О платформе», «Преимущества платформы» и вводный текст «Идеологическая вертикаль» на Главной. Карточки (ФИО, место работы, должность, телефон) добавляйте в меню «Идеологическая вертикаль».', 'portal-core' ); ?>
             </p>
 
             <table class="form-table" role="presentation">
@@ -801,10 +801,10 @@ function portal_core_render_settings_page() {
                     </td>
                 </tr>
                 <tr>
-                    <th scope="row"><label for="portal_home_tab_sections_html"><?php esc_html_e( 'Вкладка «Состав объединения» (вводный текст)', 'portal-core' ); ?></label></th>
+                    <th scope="row"><label for="portal_home_tab_sections_html"><?php esc_html_e( 'Вкладка «Идеологическая вертикаль» (вводный текст)', 'portal-core' ); ?></label></th>
                     <td>
                         <textarea name="portal_home_tab_sections_html" id="portal_home_tab_sections_html" class="large-text" rows="4"><?php echo esc_textarea( $tab_sec ); ?></textarea>
-                        <p class="description"><?php esc_html_e( 'Показывается над списком организаций. Сами блоки заполняются в меню «Состав объединения».', 'portal-core' ); ?></p>
+                        <p class="description"><?php esc_html_e( 'Показывается над карточками. Сами карточки заполняются в меню «Идеологическая вертикаль».', 'portal-core' ); ?></p>
                     </td>
                 </tr>
             </table>
