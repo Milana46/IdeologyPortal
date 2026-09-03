@@ -388,10 +388,55 @@ a.portal-download-link:hover {
     color: #5a6b8a;
 }
 
+.portal-iv-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 0 0 22px;
+}
+
+.portal-iv-filter {
+    margin: 0;
+    padding: 10px 16px;
+    border: 1px solid #dbe4f2;
+    border-radius: 10px;
+    background: #ffffff;
+    box-shadow: 0 6px 16px rgba(31, 64, 128, 0.06);
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.25;
+    color: #243b7a;
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.portal-iv-filter:hover {
+    background: #f7faff;
+    border-color: #c9d6ec;
+}
+
+.portal-iv-filter.is-active {
+    background: #edf5ff;
+    border-color: #b7ccea;
+    box-shadow: 0 4px 12px rgba(31, 64, 128, 0.08);
+}
+
+.portal-iv-empty {
+    margin: 0 0 16px;
+    font-size: 14px;
+    line-height: 1.4;
+    color: #5a6b8a;
+}
+
 .portal-iv-cards {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 16px;
+}
+
+.portal-iv-card--filtered-out {
+    display: none;
 }
 
 .portal-iv-card {

@@ -75,7 +75,7 @@ add_action(
                 'portal-home',
                 get_template_directory_uri() . '/assets/css/home.css',
                 array( 'portal-layout' ),
-                '0.3.0'
+                (string) filemtime( get_template_directory() . '/assets/css/home.css' )
             );
 
             $tabs_js = get_template_directory() . '/assets/js/home-tabs.js';

@@ -78,7 +78,7 @@ function portal_core_union_org_metabox_render( WP_Post $post ) {
 		<input type="text" class="regular-text" name="portal_iv_phone" id="portal_iv_phone" value="<?php echo esc_attr( $phone ); ?>">
 	</p>
 	<p class="description">
-		<?php esc_html_e( 'Заголовок записи — ФИО. Порядок карточек на главной задаётся полем «Порядок» справа.', 'portal-core' ); ?>
+		<?php esc_html_e( 'Заголовок записи — ФИО. Порядок карточек на главной задаётся полем «Порядок» справа. Кнопки фильтра на главной определяются по полю «Место работы (учебы)».', 'portal-core' ); ?>
 	</p>
 	<?php
 }
@@ -152,6 +152,83 @@ function portal_core_union_org_posts() {
 	return is_array( $posts ) ? $posts : array();
 }
 
+function portal_core_iv_workplaces() {
+	return array(
+		'gpo-belenergo'  => 'ГПО "Белэнерго"',
+		'brestenergo'    => 'РУП "Брестэнерго"',
+		'vitebskenergo'  => 'РУП "Витебскэнерго"',
+		'gomelenergo'    => 'РУП "Гомельэнерго"',
+		'grodnoenergo'   => 'РУП "Гродноэнерго"',
+		'minskenergo'    => 'РУП "Минскэнерго"',
+		'mogilevenergo'  => 'РУП "Могилевэнерго"',
+		'belaes'         => '"Белорусская АЭС"',
+		'other'          => 'Иные организации',
+		'belenergostroy' => '"Белэнергострой"',
+		'metz'           => 'ОАО "Мэтз имени В.И. Козлова"',
+	);
+}
+
+function portal_core_iv_normalize_workplace( $value ) {
+	$value = trim( (string) $value );
+	if ( $value === '' ) {
+		return '';
+	}
+	$value = function_exists( 'mb_strtolower' ) ? mb_strtolower( $value, 'UTF-8' ) : strtolower( $value );
+	$value = str_replace( array( 'ё', 'Ё' ), 'е', $value );
+	$value = preg_replace( '/[«»„“”"\'′`]/u', '', $value );
+	$value = preg_replace( '/\s+/u', ' ', $value );
+	return is_string( $value ) ? $value : '';
+}
+
+function portal_core_iv_workplace_slug( $workplace ) {
+	$normalized = portal_core_iv_normalize_workplace( $workplace );
+	if ( $normalized === '' ) {
+		return 'other';
+	}
+
+	foreach ( portal_core_iv_workplaces() as $slug => $label ) {
+		if ( $slug === 'other' ) {
+			continue;
+		}
+		if ( $normalized === portal_core_iv_normalize_workplace( $label ) ) {
+			return $slug;
+		}
+	}
+
+	if ( false !== strpos( $normalized, 'белэнергострой' ) ) {
+		return 'belenergostroy';
+	}
+	if ( preg_match( '/мэтз|метз/u', $normalized ) ) {
+		return 'metz';
+	}
+	if ( preg_match( '/белорусск\w*\s*аэс|белаэс|\bаэс\b/u', $normalized ) ) {
+		return 'belaes';
+	}
+	if ( false !== strpos( $normalized, 'брестэнерго' ) ) {
+		return 'brestenergo';
+	}
+	if ( false !== strpos( $normalized, 'витебскэнерго' ) ) {
+		return 'vitebskenergo';
+	}
+	if ( false !== strpos( $normalized, 'гомельэнерго' ) ) {
+		return 'gomelenergo';
+	}
+	if ( false !== strpos( $normalized, 'гродноэнерго' ) ) {
+		return 'grodnoenergo';
+	}
+	if ( false !== strpos( $normalized, 'минскэнерго' ) ) {
+		return 'minskenergo';
+	}
+	if ( false !== strpos( $normalized, 'могилевэнерго' ) ) {
+		return 'mogilevenergo';
+	}
+	if ( false !== strpos( $normalized, 'белэнерго' ) || 0 === strpos( $normalized, 'гпо ' ) ) {
+		return 'gpo-belenergo';
+	}
+
+	return 'other';
+}
+
 function portal_core_render_union_accordion() {
 	portal_core_render_vertical_cards();
 }
@@ -159,12 +236,23 @@ function portal_core_render_union_accordion() {
 function portal_core_render_vertical_cards() {
 	$posts = portal_core_union_org_posts();
 
+	echo '<div class="portal-iv">';
+	echo '<div class="portal-iv-filters" role="group" aria-label="' . esc_attr__( 'Место работы (учебы)', 'portal-core' ) . '">';
+	echo '<button type="button" class="portal-iv-filter is-active" data-workplace="all" aria-pressed="true">' . esc_html__( 'Все', 'portal-core' ) . '</button>';
+	foreach ( portal_core_iv_workplaces() as $slug => $label ) {
+		echo '<button type="button" class="portal-iv-filter" data-workplace="' . esc_attr( $slug ) . '" aria-pressed="false">' . esc_html( $label ) . '</button>';
+	}
+	echo '</div>';
+
 	if ( empty( $posts ) ) {
 		if ( current_user_can( 'manage_options' ) ) {
 			echo '<p class="portal-widget__placeholder">' . esc_html__( 'Добавьте карточки в меню «Идеологическая вертикаль».', 'portal-core' ) . '</p>';
 		}
+		echo '</div>';
 		return;
 	}
+
+	echo '<p class="portal-iv-empty" hidden>' . esc_html__( 'Нет карточек для выбранной организации.', 'portal-core' ) . '</p>';
 
 	echo '<div class="portal-iv-cards">';
 
@@ -178,8 +266,9 @@ function portal_core_render_vertical_cards() {
 		$position  = trim( (string) get_post_meta( $pid, '_portal_iv_position', true ) );
 		$phone     = trim( (string) get_post_meta( $pid, '_portal_iv_phone', true ) );
 		$tel       = preg_replace( '/[^\d+]/', '', $phone );
+		$slug      = portal_core_iv_workplace_slug( $workplace );
 		?>
-		<article class="portal-iv-card">
+		<article class="portal-iv-card" data-workplace="<?php echo esc_attr( $slug ); ?>">
 			<h3 class="portal-iv-card__name"><?php echo esc_html( $fio ); ?></h3>
 			<dl class="portal-iv-card__fields">
 				<div class="portal-iv-card__row">
@@ -207,5 +296,5 @@ function portal_core_render_vertical_cards() {
 		<?php
 	}
 
-	echo '</div>';
+	echo '</div></div>';
 }

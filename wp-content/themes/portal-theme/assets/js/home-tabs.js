@@ -35,3 +35,47 @@
         });
     });
 })();
+
+(function () {
+    var filters = document.querySelector('.portal-iv-filters');
+
+    if (!filters) {
+        return;
+    }
+
+    var buttons = filters.querySelectorAll('.portal-iv-filter');
+    var cards = document.querySelectorAll('.portal-iv-card');
+    var empty = document.querySelector('.portal-iv-empty');
+    var current = 'all';
+
+    function apply() {
+        var visible = 0;
+        var showAll = current === '' || current === 'all';
+
+        cards.forEach(function (card) {
+            var slug = card.getAttribute('data-workplace') || '';
+            var show = showAll || slug === current;
+            card.classList.toggle('portal-iv-card--filtered-out', !show);
+            if (show) {
+                visible += 1;
+            }
+        });
+
+        buttons.forEach(function (btn) {
+            var on = btn.getAttribute('data-workplace') === current;
+            btn.classList.toggle('is-active', on);
+            btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+        });
+
+        if (empty) {
+            empty.hidden = visible > 0;
+        }
+    }
+
+    buttons.forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            current = btn.getAttribute('data-workplace') || 'all';
+            apply();
+        });
+    });
+})();
