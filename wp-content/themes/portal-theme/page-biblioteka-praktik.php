@@ -159,47 +159,6 @@ $panel_id = 'bp-panel-main';
 				</div>
 
 				<aside class="bp-aside">
-					<section class="bp-widget">
-						<h3 class="bp-widget__title"><?php esc_html_e( 'Популярные материалы', 'portal-theme' ); ?></h3>
-						<ul class="bp-widget__list">
-							<?php
-							if ( $bp_popular_q->have_posts() ) :
-								while ( $bp_popular_q->have_posts() ) :
-									$bp_popular_q->the_post();
-									$fid = (int) get_post_meta( get_the_ID(), '_portal_bp_file_id', true );
-									if ( $fid <= 0 ) {
-										continue;
-									}
-									$file_url = wp_get_attachment_url( $fid );
-									if ( ! $file_url ) {
-										continue;
-									}
-									$sub = get_the_excerpt();
-									if ( ! is_string( $sub ) ) {
-										$sub = '';
-									}
-									?>
-									<li>
-										<a href="<?php echo esc_url( $file_url ); ?>" class="bp-popular" download>
-											<span class="bp-popular__icon" aria-hidden="true"></span>
-											<span class="bp-popular__text">
-												<strong><?php the_title(); ?></strong>
-												<?php if ( $sub !== '' ) : ?>
-													<span class="bp-popular__sub"><?php echo esc_html( wp_strip_all_tags( $sub ) ); ?></span>
-												<?php endif; ?>
-											</span>
-										</a>
-									</li>
-									<?php
-								endwhile;
-								wp_reset_postdata();
-							else :
-								?>
-								<li><span class="bp-widget__muted"><?php esc_html_e( 'Пока нет записей с пометкой «В популярные».', 'portal-theme' ); ?></span></li>
-							<?php endif; ?>
-						</ul>
-					</section>
-
 					<section class="bp-widget bp-widget--new">
 						<h3 class="bp-widget__title"><?php esc_html_e( 'Новые поступления', 'portal-theme' ); ?></h3>
 						<ul class="bp-widget__list bp-widget__list--new">

@@ -1,9 +1,5 @@
 <?php
-/**
- * Template Name: Медиабанк
- *
- * Материалы создаются в админке: «Медиабанк» в меню или «Добавить материалы» на странице.
- */
+/* Template Name: Медиабанк */
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -237,28 +233,6 @@ $mb_types = function_exists( 'portal_theme_mediabank_type_slugs' )
 						?>
 					</div>
 				</div>
-
-				<aside class="mediabank-aside">
-					<?php for ( $b = 0; $b < 2; $b++ ) : ?>
-						<section class="mediabank-collections">
-							<h3 class="mediabank-collections__title"><?php esc_html_e( 'Полезные подборки', 'portal-theme' ); ?></h3>
-							<ul class="mediabank-collections__list">
-								<?php for ( $i = 0; $i < 2; $i++ ) : ?>
-									<li>
-										<a href="#" class="mediabank-collections__item">
-											<span class="mediabank-collections__icon" aria-hidden="true"></span>
-											<span class="mediabank-collections__text">
-												<strong><?php esc_html_e( 'Название', 'portal-theme' ); ?></strong>
-												<span class="mediabank-collections__sub"><?php esc_html_e( 'Информация', 'portal-theme' ); ?></span>
-											</span>
-											<span class="mediabank-collections__arrow" aria-hidden="true">›</span>
-										</a>
-									</li>
-								<?php endfor; ?>
-							</ul>
-						</section>
-					<?php endfor; ?>
-				</aside>
 			</div>
 		</div>
 	</div>

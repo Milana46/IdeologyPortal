@@ -1,9 +1,5 @@
 <?php
-/**
- * Template Name: Советник+
- *
- * Материалы: меню «Советник+» в админке WordPress.
- */
+/* Template Name: Советник+ */
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -123,7 +119,7 @@ get_header();
 								if ( ! $item || $item['title'] === '' ) {
 									continue;
 								}
-								echo portal_theme_sovetnik_render_card( $item ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+								echo portal_theme_sovetnik_render_card( $item );
 							endwhile;
 							wp_reset_postdata();
 						endif;
@@ -147,7 +143,7 @@ get_header();
 									}
 									?>
 									<li>
-										<?php echo portal_theme_sovetnik_render_popular_button( $pitem ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+										<?php echo portal_theme_sovetnik_render_popular_button( $pitem ); ?>
 									</li>
 								<?php endwhile; ?>
 							</ul>
@@ -172,7 +168,7 @@ get_header();
 									}
 									?>
 									<li>
-										<?php echo portal_theme_sovetnik_render_new_button( $nitem ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+										<?php echo portal_theme_sovetnik_render_new_button( $nitem ); ?>
 									</li>
 								<?php endwhile; ?>
 							</ul>

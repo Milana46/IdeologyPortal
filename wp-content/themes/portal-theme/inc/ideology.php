@@ -5,14 +5,16 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 function portal_theme_ideology_category_slugs() {
-	return array( 'symbolika', 'akty', 'pasport' );
+	return array( 'symbolika', 'akty', 'pasport', 'plany', 'grafik-ipg' );
 }
 
 function portal_theme_ideology_category_labels() {
 	return array(
-		'symbolika' => __( 'Государственная символика', 'portal-theme' ),
-		'akty'      => __( 'Акты', 'portal-theme' ),
-		'pasport'   => __( 'Социальный паспорт предприятия', 'portal-theme' ),
+		'symbolika'   => __( 'Государственная символика', 'portal-theme' ),
+		'akty'        => __( 'Акты', 'portal-theme' ),
+		'pasport'     => __( 'Социальный паспорт предприятия', 'portal-theme' ),
+		'plany'       => __( 'Планы работы', 'portal-theme' ),
+		'grafik-ipg'  => __( 'График работы ИПГ', 'portal-theme' ),
 	);
 }
 
@@ -287,3 +289,249 @@ function portal_theme_ideology_migrate_legacy_option() {
 	update_option( 'portal_theme_ideology_legacy_migrated', 'yes', false );
 }
 add_action( 'init', 'portal_theme_ideology_migrate_legacy_option', 30 );
+
+function portal_theme_ideology_register_link_post_type() {
+	register_post_type(
+		'portal_idl_link',
+		array(
+			'labels'             => array(
+				'name'               => __( 'Полезные ссылки', 'portal-theme' ),
+				'singular_name'      => __( 'Ссылка', 'portal-theme' ),
+				'add_new'            => __( 'Добавить ссылку', 'portal-theme' ),
+				'add_new_item'       => __( 'Новая ссылка', 'portal-theme' ),
+				'edit_item'          => __( 'Редактировать ссылку', 'portal-theme' ),
+				'new_item'           => __( 'Новая ссылка', 'portal-theme' ),
+				'search_items'       => __( 'Поиск ссылок', 'portal-theme' ),
+				'not_found'          => __( 'Ссылок не найдено', 'portal-theme' ),
+				'not_found_in_trash' => __( 'В корзине пусто', 'portal-theme' ),
+				'all_items'          => __( 'Полезные ссылки', 'portal-theme' ),
+				'menu_name'          => __( 'Полезные ссылки', 'portal-theme' ),
+			),
+			'public'             => false,
+			'publicly_queryable' => false,
+			'show_ui'            => true,
+			'show_in_menu'       => 'edit.php?post_type=portal_ideology',
+			'capability_type'    => 'post',
+			'map_meta_cap'       => true,
+			'hierarchical'       => false,
+			'supports'           => array( 'title', 'thumbnail', 'page-attributes' ),
+			'has_archive'        => false,
+			'rewrite'            => false,
+			'show_in_rest'       => false,
+		)
+	);
+}
+add_action( 'init', 'portal_theme_ideology_register_link_post_type' );
+
+function portal_theme_ideology_link_enter_title( $title, $post ) {
+	if ( $post instanceof WP_Post && 'portal_idl_link' === $post->post_type ) {
+		return __( 'Название ссылки', 'portal-theme' );
+	}
+	return $title;
+}
+add_filter( 'enter_title_here', 'portal_theme_ideology_link_enter_title', 10, 2 );
+
+function portal_theme_ideology_link_add_meta_boxes() {
+	add_meta_box(
+		'portal_idl_link_details',
+		__( 'Адрес ссылки', 'portal-theme' ),
+		'portal_theme_ideology_link_metabox_render',
+		'portal_idl_link',
+		'normal',
+		'high'
+	);
+}
+add_action( 'add_meta_boxes', 'portal_theme_ideology_link_add_meta_boxes' );
+
+function portal_theme_ideology_link_metabox_render( WP_Post $post ) {
+	wp_nonce_field( 'portal_idl_link_save', 'portal_idl_link_nonce' );
+	$url = (string) get_post_meta( $post->ID, '_portal_idl_link_url', true );
+	?>
+	<p>
+		<label for="portal_idl_link_url"><strong><?php esc_html_e( 'URL', 'portal-theme' ); ?></strong></label><br>
+		<input type="url" class="large-text code" name="portal_idl_link_url" id="portal_idl_link_url" value="<?php echo esc_attr( $url ); ?>" placeholder="https://">
+	</p>
+	<p class="description">
+		<?php esc_html_e( 'Заголовок записи — текст в блоке «Полезные ссылки». Иконка — «Изображение записи» справа. Порядок на странице — поле «Порядок».', 'portal-theme' ); ?>
+	</p>
+	<?php
+}
+
+function portal_theme_ideology_link_save_meta( $post_id ) {
+	if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
+		return;
+	}
+	if ( ! isset( $_POST['portal_idl_link_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['portal_idl_link_nonce'] ) ), 'portal_idl_link_save' ) ) {
+		return;
+	}
+	if ( ! current_user_can( 'edit_post', $post_id ) ) {
+		return;
+	}
+	if ( get_post_type( $post_id ) !== 'portal_idl_link' ) {
+		return;
+	}
+
+	$url = isset( $_POST['portal_idl_link_url'] ) ? esc_url_raw( wp_unslash( $_POST['portal_idl_link_url'] ) ) : '';
+	if ( $url !== '' ) {
+		update_post_meta( $post_id, '_portal_idl_link_url', $url );
+	} else {
+		delete_post_meta( $post_id, '_portal_idl_link_url' );
+	}
+}
+add_action( 'save_post_portal_idl_link', 'portal_theme_ideology_link_save_meta' );
+
+function portal_theme_ideology_link_columns( $columns ) {
+	$new = array();
+	foreach ( $columns as $key => $label ) {
+		if ( 'title' === $key ) {
+			$new[ $key ] = __( 'Название', 'portal-theme' );
+			$new['portal_idl_link_url'] = __( 'URL', 'portal-theme' );
+			continue;
+		}
+		$new[ $key ] = $label;
+	}
+	return $new;
+}
+add_filter( 'manage_portal_idl_link_posts_columns', 'portal_theme_ideology_link_columns' );
+
+function portal_theme_ideology_link_custom_column( $column, $post_id ) {
+	if ( 'portal_idl_link_url' !== $column ) {
+		return;
+	}
+	$url = trim( (string) get_post_meta( (int) $post_id, '_portal_idl_link_url', true ) );
+	echo $url !== '' ? esc_html( $url ) : '—';
+}
+add_action( 'manage_portal_idl_link_posts_custom_column', 'portal_theme_ideology_link_custom_column', 10, 2 );
+
+function portal_theme_ideology_link_icon_url( $post_id, $link_url ) {
+	$post_id = (int) $post_id;
+	if ( $post_id > 0 && has_post_thumbnail( $post_id ) ) {
+		$thumb = get_the_post_thumbnail_url( $post_id, 'thumbnail' );
+		if ( is_string( $thumb ) && $thumb !== '' ) {
+			return $thumb;
+		}
+	}
+
+	$theme_icon = (string) get_post_meta( $post_id, '_portal_idl_theme_icon', true );
+	$theme_icon = $theme_icon !== '' ? basename( $theme_icon ) : '';
+	if ( $theme_icon !== '' ) {
+		$file = get_template_directory() . '/assets/img/' . $theme_icon;
+		if ( is_readable( $file ) ) {
+			return get_template_directory_uri() . '/assets/img/' . $theme_icon;
+		}
+	}
+
+	$host = wp_parse_url( $link_url, PHP_URL_HOST );
+	if ( is_string( $host ) && $host !== '' ) {
+		return 'https://www.google.com/s2/favicons?domain=' . rawurlencode( $host ) . '&sz=64';
+	}
+
+	return '';
+}
+
+function portal_theme_ideology_link_posts() {
+	$posts = get_posts(
+		array(
+			'post_type'   => 'portal_idl_link',
+			'post_status' => 'publish',
+			'numberposts' => -1,
+			'orderby'     => 'menu_order title',
+			'order'       => 'ASC',
+		)
+	);
+	return is_array( $posts ) ? $posts : array();
+}
+
+function portal_theme_ideology_render_useful_links() {
+	$posts = portal_theme_ideology_link_posts();
+
+	if ( empty( $posts ) ) {
+		if ( current_user_can( 'manage_options' ) ) {
+			echo '<p class="ideology-widget__placeholder">' . esc_html__( 'Добавьте ссылки в меню «Основы идеолога» → «Полезные ссылки».', 'portal-theme' ) . '</p>';
+		}
+		return;
+	}
+
+	foreach ( $posts as $post ) {
+		if ( ! $post instanceof WP_Post ) {
+			continue;
+		}
+		$pid   = (int) $post->ID;
+		$url   = trim( (string) get_post_meta( $pid, '_portal_idl_link_url', true ) );
+		$title = get_the_title( $pid );
+		if ( $url === '' || $title === '' ) {
+			continue;
+		}
+		$icon = portal_theme_ideology_link_icon_url( $pid, $url );
+		?>
+		<a href="<?php echo esc_url( $url ); ?>" class="ideology-link-item" target="_blank" rel="noopener noreferrer">
+			<span class="ideology-link-item__left">
+				<?php if ( $icon !== '' ) : ?>
+					<img src="<?php echo esc_url( $icon ); ?>" alt="<?php echo esc_attr( $title ); ?>">
+				<?php endif; ?>
+				<span><?php echo esc_html( $title ); ?></span>
+			</span>
+			<span class="ideology-link-item__arrow">&gt;</span>
+		</a>
+		<?php
+	}
+}
+
+function portal_theme_ideology_seed_useful_links() {
+	if ( get_option( 'portal_theme_idl_links_seeded', '' ) === 'yes' ) {
+		return;
+	}
+	$existing = get_posts(
+		array(
+			'post_type'      => 'portal_idl_link',
+			'post_status'    => 'any',
+			'posts_per_page' => 1,
+			'fields'         => 'ids',
+		)
+	);
+	if ( ! empty( $existing ) ) {
+		update_option( 'portal_theme_idl_links_seeded', 'yes', false );
+		return;
+	}
+
+	$defaults = array(
+		array(
+			'title' => 'Право.by',
+			'url'   => 'https://pravo.by/',
+			'icon'  => 'pravo_by.png',
+			'order' => 1,
+		),
+		array(
+			'title' => 'Пул Первого',
+			'url'   => 'https://t.me/pul_1',
+			'icon'  => 'pul.png',
+			'order' => 2,
+		),
+		array(
+			'title' => 'Belta.by',
+			'url'   => 'https://belta.by/',
+			'icon'  => 'belta.png',
+			'order' => 3,
+		),
+	);
+
+	foreach ( $defaults as $row ) {
+		$new_id = wp_insert_post(
+			array(
+				'post_type'   => 'portal_idl_link',
+				'post_status' => 'publish',
+				'post_title'  => $row['title'],
+				'menu_order'  => (int) $row['order'],
+			),
+			true
+		);
+		if ( is_wp_error( $new_id ) || ! $new_id ) {
+			continue;
+		}
+		update_post_meta( (int) $new_id, '_portal_idl_link_url', esc_url_raw( $row['url'] ) );
+		update_post_meta( (int) $new_id, '_portal_idl_theme_icon', sanitize_file_name( $row['icon'] ) );
+	}
+
+	update_option( 'portal_theme_idl_links_seeded', 'yes', false );
+}
+add_action( 'init', 'portal_theme_ideology_seed_useful_links', 40 );

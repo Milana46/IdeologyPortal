@@ -185,6 +185,14 @@
     background: #1e88e5;
 }
 
+.ideology-card__image-label--plany {
+    background: #fb8c00;
+}
+
+.ideology-card__image-label--grafik-ipg {
+    background: #8e24aa;
+}
+
 .ideology-card__main {
     min-width: 0;
     display: flex;
@@ -278,6 +286,13 @@
     line-height: 1.2;
     font-weight: 700;
     color: #243b7a;
+}
+
+.ideology-widget__placeholder {
+    margin: 0;
+    font-size: 12px;
+    line-height: 1.35;
+    color: #8a99b8;
 }
 
 .ideology-link-item {

@@ -617,7 +617,9 @@ function portal_theme_bp_render_material_card_from_post( $post, $theme_img, $is_
 }
 
 function portal_theme_ideology_render_card( array $item ) {
-	$allowed = array( 'symbolika', 'akty', 'pasport' );
+	$allowed = function_exists( 'portal_theme_ideology_category_slugs' )
+		? portal_theme_ideology_category_slugs()
+		: array( 'symbolika', 'akty', 'pasport', 'plany', 'grafik-ipg' );
 	$cat     = isset( $item['category'] ) ? sanitize_key( $item['category'] ) : 'akty';
 	if ( ! in_array( $cat, $allowed, true ) ) {
 		$cat = 'akty';
@@ -625,11 +627,9 @@ function portal_theme_ideology_render_card( array $item ) {
 	$title_t   = isset( $item['title'] ) ? (string) $item['title'] : '';
 	$excerpt_t = isset( $item['excerpt'] ) ? (string) $item['excerpt'] : '';
 
-	$labels = array(
-		'symbolika' => __( 'Государственная символика', 'portal-theme' ),
-		'akty'      => __( 'Акты', 'portal-theme' ),
-		'pasport'   => __( 'Социальный паспорт предприятия', 'portal-theme' ),
-	);
+	$labels = function_exists( 'portal_theme_ideology_category_labels' )
+		? portal_theme_ideology_category_labels()
+		: array();
 	$cat_label = isset( $labels[ $cat ] ) ? $labels[ $cat ] : __( 'Материал', 'portal-theme' );
 	$img_alt   = $cat_label;
 

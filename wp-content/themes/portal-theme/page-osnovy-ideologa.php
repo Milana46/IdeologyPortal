@@ -1,9 +1,5 @@
 <?php
-/**
- * Template Name: Основы идеолога
- *
- * Материалы ведутся в админке: меню «Основы идеолога».
- */
+/* Template Name: Основы идеолога */
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -71,9 +67,16 @@ get_header();
 
 			<section class="ideology-tabs" aria-label="<?php esc_attr_e( 'Тип материала', 'portal-theme' ); ?>">
 				<button type="button" class="ideology-tabs__item is-active" data-ideology-tab="all"><?php esc_html_e( 'Все', 'portal-theme' ); ?></button>
-				<button type="button" class="ideology-tabs__item" data-ideology-tab="symbolika"><?php esc_html_e( 'Государственная символика', 'portal-theme' ); ?></button>
-				<button type="button" class="ideology-tabs__item" data-ideology-tab="akty"><?php esc_html_e( 'Акты', 'portal-theme' ); ?></button>
-				<button type="button" class="ideology-tabs__item" data-ideology-tab="pasport"><?php esc_html_e( 'Социальный паспорт предприятия', 'portal-theme' ); ?></button>
+				<?php
+				$idl_tab_labels = function_exists( 'portal_theme_ideology_category_labels' )
+					? portal_theme_ideology_category_labels()
+					: array();
+				foreach ( $idl_tab_labels as $idl_slug => $idl_label ) :
+					?>
+					<button type="button" class="ideology-tabs__item" data-ideology-tab="<?php echo esc_attr( $idl_slug ); ?>"><?php echo esc_html( $idl_label ); ?></button>
+					<?php
+				endforeach;
+				?>
 			</section>
 
 			<div class="ideology-layout">
@@ -89,7 +92,7 @@ get_header();
 								if ( ! $item || $item['title'] === '' ) {
 									continue;
 								}
-								echo portal_theme_ideology_render_card( $item ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+								echo portal_theme_ideology_render_card( $item );
 							endwhile;
 							wp_reset_postdata();
 						endif;
@@ -103,54 +106,11 @@ get_header();
 							<?php esc_html_e( 'Полезные ссылки', 'portal-theme' ); ?>
 						</h3>
 
-						<a href="https://pravo.by/" class="ideology-link-item">
-							<span class="ideology-link-item__left">
-								<img
-									src="<?php echo esc_url( get_template_directory_uri() . '/assets/img/pravo_by.png' ); ?>"
-									alt="Право.by"
-								>
-
-								<span>
-									Право.by
-								</span>
-							</span>
-
-							<span class="ideology-link-item__arrow">
-								>
-							</span>
-						</a>
-
-						<a href="https://t.me/pul_1" class="ideology-link-item">
-							<span class="ideology-link-item__left">
-								<img
-									src="<?php echo esc_url( get_template_directory_uri() . '/assets/img/pul.png' ); ?>"
-									alt="Пул Первого"
-								>
-								<span>
-									Пул Первого
-								</span>
-							</span>
-
-							<span class="ideology-link-item__arrow">
-								>
-							</span>
-						</a>
-
-						<a href="https://belta.by/" class="ideology-link-item">
-							<span class="ideology-link-item__left">
-								<img
-									src="<?php echo esc_url( get_template_directory_uri() . '/assets/img/belta.png' ); ?>"
-									alt="Belta"
-								>
-								<span>
-									Belta.by
-								</span>
-							</span>
-
-							<span class="ideology-link-item__arrow">
-								>
-							</span>
-						</a>
+						<?php
+						if ( function_exists( 'portal_theme_ideology_render_useful_links' ) ) {
+							portal_theme_ideology_render_useful_links();
+						}
+						?>
 					</section>
 
 					<section class="ideology-poster">

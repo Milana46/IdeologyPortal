@@ -178,15 +178,12 @@
 }
 
 .mediabank-layout {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) 300px;
-    gap: 24px;
-    align-items: start;
+    display: block;
 }
 
 .mediabank-grid {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 20px;
 }
 
@@ -536,7 +533,11 @@
     }
 
     .mediabank-layout {
-        grid-template-columns: 1fr;
+        display: block;
+    }
+
+    .mediabank-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
     .mediabank-aside {

@@ -40,9 +40,6 @@ register_deactivation_hook(
     }
 );
 
-/**
- * Файлы для блоков «Дополнительные ресурсы» и «Необходимые документы» на главной.
- */
 function portal_core_register_home_file_cpt() {
     register_post_type(
         'portal_home_file',
@@ -189,12 +186,6 @@ function portal_core_save_home_file_meta( $post_id, WP_Post $post ) {
     }
 }
 
-/**
- * URL для скачивания (вложение приоритетнее внешней ссылки).
- *
- * @param int $post_id ID записи portal_home_file.
- * @return string
- */
 function portal_core_get_home_file_download_url( $post_id ) {
     $post_id = (int) $post_id;
 
@@ -217,10 +208,6 @@ function portal_core_get_home_file_download_url( $post_id ) {
     return is_string( $ext ) && $ext ? $ext : '';
 }
 
-/**
- * @param string $block documents|actual
- * @return WP_Query
- */
 function portal_core_home_file_query( $block ) {
     if ( ! in_array( $block, array( 'documents', 'actual' ), true ) ) {
         $block = 'documents';
@@ -245,9 +232,6 @@ function portal_core_home_file_query( $block ) {
     );
 }
 
-/**
- * @param string $block documents|actual
- */
 function portal_core_render_home_file_list( $block ) {
     $q = portal_core_home_file_query( $block );
 
@@ -376,11 +360,6 @@ function portal_core_render_home_file_row( $post_id, $block = 'documents' ) {
     <?php
 }
 
-/**
- * Расширенный whitelist для вкладок главной.
- *
- * @return array<string, array<string, array<int, string>>>
- */
 function portal_core_allowed_tab_html_tags() {
     $a = array(
         'href'   => array(),
@@ -405,18 +384,10 @@ function portal_core_allowed_tab_html_tags() {
     );
 }
 
-/**
- * @param string $html Сырой HTML.
- * @return string
- */
 function portal_core_sanitize_tab_html( $html ) {
     return wp_kses( $html, portal_core_allowed_tab_html_tags() );
 }
 
-/**
- * @param string $option_key Ключ опции.
- * @return string Очищенный HTML или пустая строка.
- */
 function portal_core_get_tab_html( $option_key ) {
     $html = get_option( $option_key, '' );
 
@@ -450,11 +421,6 @@ function portal_core_register_admin_page() {
     );
 }
 
-/**
- * Документ из папки темы: assets/documents/
- *
- * @return array<string, mixed>
- */
 function portal_core_get_youth_forum_instruction_assets() {
     $doc_filename = 'Пошагавая инструкция к проведению молодежного-патриотического форума в Полоцком районе.doc';
 
@@ -522,9 +488,6 @@ function portal_core_get_youth_forum_instruction_assets() {
     );
 }
 
-/**
- * Страница просмотра инструкции в консоли (чтение + скачивание .doc).
- */
 function portal_core_render_forum_instruction_page() {
     if ( ! current_user_can( 'manage_options' ) ) {
         return;
@@ -545,7 +508,6 @@ function portal_core_render_forum_instruction_page() {
                     <?php
                     echo esc_html(
                         sprintf(
-                            /* translators: %s: file name */
                             __( 'Файл не найден: %s', 'portal-core' ),
                             $a['doc_filename']
                         )
@@ -606,11 +568,6 @@ function portal_core_render_forum_instruction_page() {
 
 add_action( 'admin_enqueue_scripts', 'portal_core_instruction_admin_assets' );
 
-/**
- * Стили экрана инструкции в админке.
- *
- * @param string $hook_suffix Текущий экран.
- */
 function portal_core_instruction_admin_assets( $hook_suffix ) {
     if ( 'portal-settings_page_portal-forum-instruction' !== $hook_suffix ) {
         return;
@@ -814,9 +771,6 @@ function portal_core_render_settings_page() {
     <?php
 }
 
-/**
- * Создаёт опубликованную страницу «Советник+» с шаблоном темы, если её ещё нет.
- */
 add_action( 'init', 'portal_core_ensure_sovetnik_plus_page', 99 );
 
 function portal_core_ensure_sovetnik_plus_page() {
@@ -858,9 +812,6 @@ function portal_core_ensure_sovetnik_plus_page() {
     update_post_meta( (int) $post_id, '_wp_page_template', 'page-sovetnik-plus.php' );
 }
 
-/**
- * Создаёт опубликованную страницу «Библиотека практик» с шаблоном темы, если её ещё нет.
- */
 add_action( 'init', 'portal_core_ensure_biblioteka_praktik_page', 100 );
 
 function portal_core_ensure_biblioteka_praktik_page() {
@@ -902,9 +853,6 @@ function portal_core_ensure_biblioteka_praktik_page() {
     update_post_meta( (int) $post_id, '_wp_page_template', 'page-biblioteka-praktik.php' );
 }
 
-/**
- * Создаёт опубликованную страницу «Календарь ключевых событий» с шаблоном темы, если её ещё нет.
- */
 add_action( 'init', 'portal_core_ensure_kalendar_klyuchevyy_sobytiy_page', 101 );
 
 function portal_core_ensure_kalendar_klyuchevyy_sobytiy_page() {

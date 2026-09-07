@@ -1,9 +1,5 @@
 <?php
-/**
- * Template Name: Календарь мероприятий
- *
- * Создайте страницу в админке и выберите этот шаблон (желательный ярлык: kalendar-meropriyatiy).
- */
+/* Template Name: Календарь мероприятий */
 if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
