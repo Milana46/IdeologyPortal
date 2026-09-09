@@ -163,7 +163,7 @@ $popular_sub_fallback = __( 'Краткая информация', 'portal-theme
 						<?php elseif ( 'fail' === $analytics_ask_flag ) : ?>
 							<p class="analytics-ask-notice analytics-ask-notice--error" role="alert"><?php esc_html_e( 'Не удалось сохранить сообщение. Попробуйте позже или свяжитесь с администратором сайта.', 'portal-theme' ); ?></p>
 						<?php endif; ?>
-						<form class="analytics-ask-form" method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+						<form class="analytics-ask-form" method="post" action="<?php echo esc_url( get_permalink() ); ?>">
 							<input type="hidden" name="action" value="portal_analytics_ask">
 							<?php wp_nonce_field( 'portal_analytics_ask' ); ?>
 							<label class="analytics-sr-only" for="analytics-question-field"><?php esc_html_e( 'Ваш вопрос', 'portal-theme' ); ?></label>

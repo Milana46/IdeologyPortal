@@ -402,11 +402,6 @@ function portal_theme_analytics_get_popular_rows() {
 	return $out !== array() ? $out : portal_theme_analytics_default_popular_rows();
 }
 
-function portal_theme_analytics_redirect_to_messages_admin() {
-	wp_safe_redirect( admin_url( 'edit.php?post_type=portal_at_question' ) );
-	exit;
-}
-
 function portal_theme_analytics_task_menu_parent_slug() {
 	global $submenu;
 	$preferred = 'edit.php?post_type=portal_at_task';
@@ -437,17 +432,6 @@ function portal_theme_analytics_register_analytics_extra_submenus() {
 	$task_obj = get_post_type_object( 'portal_at_task' );
 	$task_cap = ( $task_obj && isset( $task_obj->cap->edit_posts ) ) ? $task_obj->cap->edit_posts : 'edit_posts';
 
-	if ( post_type_exists( 'portal_at_question' ) ) {
-		add_submenu_page(
-			$parent,
-			__( 'Сообщения с портала', 'portal-theme' ),
-			__( 'Сообщения с портала', 'portal-theme' ),
-			$task_cap,
-			'portal-at-messages',
-			'portal_theme_analytics_redirect_to_messages_admin'
-		);
-	}
-
 	add_submenu_page(
 		$parent,
 		__( 'Настройки раздела «Аналитика»', 'portal-theme' ),
@@ -459,8 +443,34 @@ function portal_theme_analytics_register_analytics_extra_submenus() {
 
 	$done = true;
 }
+
+function portal_theme_analytics_adjust_question_submenu() {
+	global $submenu;
+	$parent = 'edit.php?post_type=portal_at_task';
+	if ( empty( $submenu[ $parent ] ) || ! is_array( $submenu[ $parent ] ) ) {
+		return;
+	}
+	$pending = 0;
+	$counts  = wp_count_posts( 'portal_at_question' );
+	if ( is_object( $counts ) && isset( $counts->pending ) ) {
+		$pending = (int) $counts->pending;
+	}
+	foreach ( $submenu[ $parent ] as $i => $item ) {
+		if ( ! isset( $item[2] ) || ! is_string( $item[2] ) ) {
+			continue;
+		}
+		if ( 'post-new.php?post_type=portal_at_question' === $item[2] ) {
+			unset( $submenu[ $parent ][ $i ] );
+			continue;
+		}
+		if ( $pending > 0 && 'edit.php?post_type=portal_at_question' === $item[2] ) {
+			$submenu[ $parent ][ $i ][0] .= ' <span class="awaiting-mod">' . number_format_i18n( $pending ) . '</span>';
+		}
+	}
+}
 add_action( 'admin_menu', 'portal_theme_analytics_register_analytics_extra_submenus', 20 );
 add_action( 'admin_menu', 'portal_theme_analytics_register_analytics_extra_submenus', 2000 );
+add_action( 'admin_menu', 'portal_theme_analytics_adjust_question_submenu', 9999 );
 
 function portal_theme_analytics_settings_page_render() {
 	if ( ! current_user_can( 'manage_options' ) ) {
@@ -694,7 +704,7 @@ function portal_theme_analytics_register_question_cpt() {
 			'public'             => false,
 			'publicly_queryable' => false,
 			'show_ui'            => true,
-			'show_in_menu'       => false,
+			'show_in_menu'       => 'edit.php?post_type=portal_at_task',
 			'capability_type'    => 'post',
 			'map_meta_cap'       => true,
 			'supports'           => array( 'title', 'editor' ),
@@ -704,6 +714,31 @@ function portal_theme_analytics_register_question_cpt() {
 	);
 }
 add_action( 'init', 'portal_theme_analytics_register_question_cpt', 11 );
+
+function portal_theme_analytics_question_columns( $columns ) {
+	$out = array();
+	if ( isset( $columns['cb'] ) ) {
+		$out['cb'] = $columns['cb'];
+	}
+	$out['title']            = __( 'Кратко', 'portal-theme' );
+	$out['portal_at_q_text'] = __( 'Текст вопроса', 'portal-theme' );
+	$out['date']             = __( 'Дата', 'portal-theme' );
+	$out['portal_at_q_ip']   = __( 'IP', 'portal-theme' );
+	return $out;
+}
+add_filter( 'manage_portal_at_question_posts_columns', 'portal_theme_analytics_question_columns' );
+
+function portal_theme_analytics_question_column( $column, $post_id ) {
+	if ( 'portal_at_q_text' === $column ) {
+		echo esc_html( wp_html_excerpt( (string) get_post_field( 'post_content', $post_id ), 180, '…' ) );
+		return;
+	}
+	if ( 'portal_at_q_ip' === $column ) {
+		$ip = get_post_meta( $post_id, '_portal_at_q_ip', true );
+		echo is_string( $ip ) && $ip !== '' ? esc_html( $ip ) : '—';
+	}
+}
+add_action( 'manage_portal_at_question_posts_custom_column', 'portal_theme_analytics_question_column', 10, 2 );
 
 function portal_theme_analytics_question_meta_boxes() {
 	add_meta_box(
@@ -776,7 +811,7 @@ function portal_theme_analytics_store_visitor_question( $text ) {
 	$post_id = wp_insert_post(
 		array(
 			'post_type'    => 'portal_at_question',
-			'post_status'  => 'publish',
+			'post_status'  => 'pending',
 			'post_title'   => $title,
 			'post_content' => $text,
 			'post_author'  => $author_id,
@@ -811,7 +846,7 @@ function portal_theme_analytics_store_visitor_question( $text ) {
 				'post_content'          => $text,
 				'post_title'            => $title,
 				'post_excerpt'          => '',
-				'post_status'           => 'publish',
+				'post_status'           => 'pending',
 				'comment_status'        => 'closed',
 				'ping_status'           => 'closed',
 				'post_password'         => '',
@@ -1124,14 +1159,39 @@ function portal_theme_analytics_task_modal_template_html( $post_id ) {
 	return (string) ob_get_clean();
 }
 
+function portal_theme_analytics_question_redirect_base() {
+	if ( function_exists( 'portal_theme_is_analytics_page' ) && portal_theme_is_analytics_page() ) {
+		$qid = (int) get_queried_object_id();
+		if ( $qid > 0 ) {
+			$link = get_permalink( $qid );
+			if ( is_string( $link ) && $link !== '' ) {
+				return remove_query_arg( 'analytics_ask', $link );
+			}
+		}
+	}
+	$ref = wp_get_referer();
+	if ( $ref ) {
+		return remove_query_arg( 'analytics_ask', $ref );
+	}
+	if ( function_exists( 'portal_theme_analytics_get_page_id' ) ) {
+		$aid = portal_theme_analytics_get_page_id();
+		if ( $aid ) {
+			$link = get_permalink( $aid );
+			if ( is_string( $link ) && $link !== '' ) {
+				return remove_query_arg( 'analytics_ask', $link );
+			}
+		}
+	}
+	return home_url( '/' );
+}
+
 function portal_theme_analytics_handle_question() {
 	if ( ! isset( $_POST['_wpnonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['_wpnonce'] ) ), 'portal_analytics_ask' ) ) {
 		wp_safe_redirect( home_url( '/' ) );
 		exit;
 	}
 	$text = isset( $_POST['analytics_question'] ) ? sanitize_textarea_field( wp_unslash( $_POST['analytics_question'] ) ) : '';
-	$ref  = wp_get_referer();
-	$base = $ref ? remove_query_arg( 'analytics_ask', $ref ) : home_url( '/' );
+	$base = portal_theme_analytics_question_redirect_base();
 
 	if ( $text === '' ) {
 		wp_safe_redirect( add_query_arg( 'analytics_ask', 'empty', $base ) );
@@ -1149,5 +1209,16 @@ function portal_theme_analytics_handle_question() {
 	wp_safe_redirect( add_query_arg( 'analytics_ask', 'fail', $base ) );
 	exit;
 }
+
+function portal_theme_analytics_maybe_handle_question() {
+	if ( 'POST' !== strtoupper( (string) ( $_SERVER['REQUEST_METHOD'] ?? '' ) ) ) {
+		return;
+	}
+	if ( ! isset( $_POST['action'] ) || 'portal_analytics_ask' !== sanitize_text_field( wp_unslash( $_POST['action'] ) ) ) {
+		return;
+	}
+	portal_theme_analytics_handle_question();
+}
+add_action( 'template_redirect', 'portal_theme_analytics_maybe_handle_question', 1 );
 add_action( 'admin_post_portal_analytics_ask', 'portal_theme_analytics_handle_question' );
 add_action( 'admin_post_nopriv_portal_analytics_ask', 'portal_theme_analytics_handle_question' );
