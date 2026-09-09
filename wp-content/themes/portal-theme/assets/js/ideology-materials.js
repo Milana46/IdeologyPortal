@@ -45,8 +45,13 @@
 		}
 		cardsRoot.querySelectorAll('.ideology-card').forEach(function (card) {
 			var cat = card.getAttribute('data-ideology-category') || '';
-			var hay = normalize(card.getAttribute('data-ideology-search') || '');
-			var tabOk = tab === 'all' || cat === tab;
+			var text = '';
+			var content = card.querySelector('.ideology-card__content');
+			if (content) {
+				text = content.textContent || '';
+			}
+			var hay = normalize((card.getAttribute('data-ideology-search') || '') + ' ' + text);
+			var tabOk = q ? true : tab === 'all' || cat === tab;
 			var qOk = !q || hay.indexOf(q) !== -1;
 			card.classList.toggle('ideology-card--filtered-out', !(tabOk && qOk));
 		});
@@ -71,7 +76,18 @@
 	if (searchInput) {
 		searchInput.addEventListener('input', function () {
 			state.query = searchInput.value;
+			if (normalize(state.query)) {
+				state.tab = 'all';
+				tabBtns.forEach(function (b) {
+					b.classList.toggle('is-active', b.getAttribute('data-ideology-tab') === 'all');
+				});
+			}
 			applyFilters();
+		});
+		searchInput.addEventListener('keydown', function (e) {
+			if (e.key === 'Enter') {
+				e.preventDefault();
+			}
 		});
 	}
 

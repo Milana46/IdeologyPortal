@@ -91,7 +91,7 @@ add_action(
             }
         }
 
-        if ( is_page( 'osnovy-ideologa' ) || is_page_template( 'page-osnovy-ideologa.php' ) ) {
+        if ( is_page( 'osnovy-ideologa' ) || is_page_template( 'page-osnovy-ideologa.php' ) || ( is_page() && basename( (string) get_page_template() ) === 'page-osnovy-ideologa.php' ) ) {
             $idl_css = get_template_directory() . '/assets/css/ideology.css';
             $idl_js  = get_template_directory() . '/assets/js/ideology-materials.js';
             if ( file_exists( $idl_css ) ) {
@@ -633,7 +633,7 @@ function portal_theme_ideology_render_card( array $item ) {
 	$cat_label = isset( $labels[ $cat ] ) ? $labels[ $cat ] : __( 'Материал', 'portal-theme' );
 	$img_alt   = $cat_label;
 
-	$raw_s      = wp_strip_all_tags( $title_t . ' ' . $excerpt_t );
+	$raw_s      = wp_strip_all_tags( $title_t . ' ' . $excerpt_t . ' ' . $cat_label );
 	$search_idx = function_exists( 'mb_strtolower' ) ? mb_strtolower( $raw_s, 'UTF-8' ) : strtolower( $raw_s );
 
 	$theme_img   = get_template_directory_uri() . '/assets/img';
